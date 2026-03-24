@@ -73,6 +73,7 @@ app.use(cors());
 app.use(express.json({ limit: '20mb' }));
 
 app.use('/demo', express.static(path.join(__dirname, 'public')));
+app.get('/', (_req, res) => res.redirect('/demo/index.html'));
 
 app.get('/health', async (_req, res) => {
   try {
