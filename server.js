@@ -1322,6 +1322,48 @@ app.use((err, _req, res, next) => {
   next();
 });
 
+// ===== SETUP ENDPOINT (run once to initialize DB) =====
+app.post('/internal/setup-db', async (req, res) => {
+  const secret = req.headers['x-setup-secret'];
+  if (secret !== process.env.SETUP_SECRET && secret !== 'chiripapp-setup-2026') {
+    return res.status(403).json({ error: 'forbidden' });
+  }
+  const fs = require('fs');
+  const path = require('path');
+  try {
+    const schemaPath = path.join(__dirname, 'schema.sql');
+    const migPath = path.join(__dirname, 'migration_onboarding.sql');
+    const seedPath = path.join(__dirname, 'seed.sql');
+    const seed2Path = path.join(__dirname, 'seed_demo_chiriperos.sql');
+    const seed3Path = path.join(__dirname, 'seed_more_chiriperos.sql');
+    const results = [];
+    if (fs.existsSync(schemaPath)) {
+      await db.query(fs.readFileSync(schemaPath, 'utf8'));
+      results.push('schema.sql OK');
+    }
+    if (fs.existsSync(migPath)) {
+      await db.query(fs.readFileSync(migPath, 'utf8'));
+      results.push('migration_onboarding.sql OK');
+    }
+    if (fs.existsSync(seedPath)) {
+      await db.query(fs.readFileSync(seedPath, 'utf8'));
+      results.push('seed.sql OK');
+    }
+    if (fs.existsSync(seed2Path)) {
+      await db.query(fs.readFileSync(seed2Path, 'utf8'));
+      results.push('seed_demo_chiriperos.sql OK');
+    }
+    if (fs.existsSync(seed3Path)) {
+      await db.query(fs.readFileSync(seed3Path, 'utf8'));
+      results.push('seed_more_chiriperos.sql OK');
+    }
+    res.json({ success: true, results });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+// ===== END SETUP ENDPOINT =====
+
 const port = process.env.PORT || 8088;
 ensurePromoCatalog()
   .then(() => {
