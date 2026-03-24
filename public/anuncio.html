@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Completa tu anuncio | CHIRIPAPP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#f4f9fd;--card:#fff;--text:#0f172a;--muted:#475569;--brand:#1ea4de;--brand2:#177fbf;--line:#dbe8f2;--ok:#16a34a;--warn:#b45309}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    .container{max-width:1120px;margin:0 auto;padding:16px}
+    .topbar{display:flex;align-items:center;justify-content:flex-start;padding:6px 0}
+    .logo-img{height:110px;max-width:560px;width:auto;object-fit:contain}
+    .hero{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-radius:20px;padding:20px;margin-bottom:14px;box-shadow:0 16px 34px rgba(23,127,191,.25)}
+    .hero h1{margin:0;font-size:30px;line-height:1.05}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 4px 14px rgba(15,23,42,.06)}
+    .stepper{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;align-items:start;margin-bottom:10px}
+    .step-item{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;position:relative}
+    .step-dot{width:14px;height:14px;border-radius:999px;background:#cbd5e1;border:2px solid #94a3b8;position:relative;z-index:2}
+    .step-item.active .step-dot{background:#0ea5e9;border-color:#0284c7;box-shadow:0 0 0 4px rgba(14,165,233,.18)}
+    .step-label{font-size:11px;color:#475569;line-height:1.15}
+    .step-item.active .step-label{color:#0f172a;font-weight:700}
+    .step-item:not(:last-child)::after{content:'';position:absolute;top:7px;left:55%;right:-45%;height:2px;background:linear-gradient(90deg,#cbd5e1,#dbeafe)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    label{display:block;font-size:13px;color:#334155;margin:4px 0 6px}
+    input,textarea,button,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:14px}
+    input[readonly]{background:#f8fafc;color:#334155}
+    textarea{min-height:100px;resize:vertical}
+
+    .picker{position:relative;border:1px solid var(--line);border-radius:12px;background:#fff;padding:8px}
+    .picker-input{padding:10px;border-radius:10px}
+    .picker-list{position:absolute;left:8px;right:8px;top:54px;max-height:210px;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 24px rgba(15,23,42,.12);z-index:20;display:none}
+    .picker-list.open{display:block}
+    .opt{display:flex;align-items:center;padding:9px 10px;cursor:pointer}
+    .opt:hover{background:#f1f5f9}
+    .chips{display:flex;flex-wrap:wrap;gap:6px;padding-top:8px;min-height:36px}
+    .chip{display:inline-flex;align-items:center;gap:6px;background:#e0f2fe;color:#075985;border:1px solid #bae6fd;border-radius:999px;padding:4px 10px;font-size:12px}
+    .chip button{width:auto;border:none;background:transparent;padding:0;margin:0;font-weight:900;cursor:pointer;color:#075985}
+
+    .schedule-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+    .days-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+    .day-chip{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);background:#fff;color:#334155;border-radius:999px;font-size:12px;cursor:pointer;text-align:center;width:142px;height:34px;padding:0;flex:0 0 142px}
+    .day-chip.active{background:#0ea5e9;color:#fff;border-color:#0ea5e9}
+    .chip-blue{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border:none}
+    .chip-black{background:var(--text);color:#fff;border:none}
+    .hours-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+    .upload-col{max-width:50%;min-width:280px}
+    .upload-wrap{margin-top:4px}
+    .upload-btn{gap:6px;width:142px}
+    .files-list{margin-top:8px;padding-left:18px}
+
+    .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    .action-wrap-left{justify-self:start}
+    .action-wrap-right{justify-self:end}
+
+    .muted{font-size:12px;color:var(--muted)} .ok{color:var(--ok);font-weight:700} .warn{color:var(--warn);font-weight:700}
+    @media(max-width:760px){.container{padding:12px}.logo-img{height:88px}.hero h1{font-size:24px}.grid,.schedule-grid{grid-template-columns:1fr}.hours-grid{grid-template-columns:1fr 1fr}.upload-col{max-width:100%;min-width:0}.actions{grid-template-columns:1fr 1fr}.day-chip{width:101px;flex-basis:101px}.stepper{grid-template-columns:repeat(5,minmax(80px,1fr));overflow-x:auto;padding-bottom:2px}.step-item{align-items:center;text-align:center;padding-left:0}.step-item:not(:last-child)::after{display:block}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="topbar"><img class="logo-img" src="/demo/assets/logo_horizontal_trans.png" alt="CHIRIPAPP"/></div>
+    <section class="hero"><h1>Completa tu anuncio</h1><div class="muted" style="color:#e2f2ff;margin-top:6px">Paso 3: Detalles de anuncio</div></section>
+
+    <div class="card" id="onboardingStepperAd" style="display:none">
+      <div class="stepper">
+        <div class="step-item"><span class="step-dot"></span><span class="step-label">Registro</span></div>
+        <div class="step-item"><span class="step-dot"></span><span class="step-label">Membresía y pago</span></div>
+        <div class="step-item active"><span class="step-dot"></span><span class="step-label">Detalles de anuncio</span></div>
+        <div class="step-item"><span class="step-dot"></span><span class="step-label">En revisión</span></div>
+        <div class="step-item"><span class="step-dot"></span><span class="step-label">Completado</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="grid">
+        <div>
+          <label>ID de perfil</label>
+          <input id="profile_id" readonly style="border:none;background:transparent;padding-left:0" />
+          <div class="muted">Asignado automáticamente al aprobar el registro.</div>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:10px">
+        <div>
+          <label>Servicios</label>
+          <div class="picker" id="servicesPicker">
+            <input class="picker-input" id="servicesSearch" placeholder="Buscar y seleccionar servicios..." autocomplete="off" />
+            <div class="picker-list" id="servicesList"></div>
+            <div class="chips" id="servicesChips"></div>
+          </div>
+        </div>
+        <div>
+          <label>Zonas</label>
+          <div class="picker" id="zonesPicker">
+            <input class="picker-input" id="zonesSearch" placeholder="Buscar y seleccionar zonas..." autocomplete="off" />
+            <div class="picker-list" id="zonesList"></div>
+            <div class="chips" id="zonesChips"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:10px">
+        <div><label>Título del anuncio</label><input id="title" placeholder="Se completa según servicios elegidos" /></div>
+      </div>
+
+      <label>Descripción</label>
+      <textarea id="bio" placeholder="Se completa por defecto según servicios y luego puedes ajustarla."></textarea>
+
+      <div class="card" style="margin-top:10px;padding:12px">
+        <div class="schedule-grid">
+          <div>
+            <label>Días disponibles</label>
+            <div id="days" class="days-grid">
+              <button type="button" class="day-chip" data-day="Lun">Lun</button>
+              <button type="button" class="day-chip" data-day="Mar">Mar</button>
+              <button type="button" class="day-chip" data-day="Mié">Mié</button>
+              <button type="button" class="day-chip" data-day="Jue">Jue</button>
+              <button type="button" class="day-chip" data-day="Vie">Vie</button>
+              <button type="button" class="day-chip" data-day="Sáb">Sáb</button>
+              <button type="button" class="day-chip" data-day="Dom">Dom</button>
+              <span></span><span></span>
+            </div>
+          </div>
+          <div>
+            <label>Horario</label>
+            <div class="hours-grid">
+              <div><label>Desde</label><select id="hour_from"></select></div>
+              <div><label>Hasta</label><select id="hour_to"></select></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:10px;padding:12px">
+        <div class="upload-col">
+          <label>Banner del anuncio</label>
+          <div class="upload-wrap">
+            <input id="banner_file" type="file" accept="image/*,.pdf" style="display:none" />
+            <button type="button" class="day-chip chip-blue upload-btn" id="uploadBannerBtn">📁 Cargar banner</button>
+            <div class="muted" style="margin-top:6px">Formato recomendado: horizontal, relación 4:3 (ej. 1200x900), buena luz y sin texto encima.</div>
+            <ul id="bannerList" class="files-list muted"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:10px;padding:12px">
+        <div class="upload-col">
+          <label>Fotos de trabajos (opcional)</label>
+          <div class="upload-wrap">
+            <input id="work_photos_files" type="file" accept="image/*,.pdf" multiple style="display:none" />
+            <button type="button" class="day-chip chip-blue upload-btn" id="uploadPhotosBtn">📁 Cargar fotos</button>
+            <div id="photosHelp" class="muted" style="margin-top:6px">Puedes seleccionar varias fotos a la vez.</div>
+            <ul id="photosList" class="files-list muted"></ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="actions" style="margin-top:10px">
+      <div class="action-wrap-left"><button type="button" class="day-chip chip-black" onclick="resetForm()">Limpiar</button></div>
+      <div class="action-wrap-right"><button type="button" class="day-chip chip-blue" onclick="saveAd()">Continuar</button></div>
+    </div>
+    <div id="status" class="muted" style="margin-top:8px"></div>
+  </div>
+
+<script>
+const state = {
+  profileId: null,
+  services: [], zones: [],
+  selectedServices: new Set(),
+  selectedZones: new Set(),
+  selectedDays: new Set(['Lun','Mar','Mié','Jue','Vie','Sáb']),
+  workPhotoFiles: [],
+  bannerFile: null
+};
+
+const SERVICE_COPY = {
+  defaultTitle: (names) => names.length ? `${names.join(' y ')} confiable en Santo Domingo` : 'Servicio confiable en Santo Domingo',
+  defaultBio: (names) => {
+    const list = names.length ? names.join(', ') : 'servicios varios';
+    return `Brindo ${list} con trato responsable, puntualidad y enfoque en calidad. Escríbeme por WhatsApp para coordinar visita y cotización según tu necesidad.`;
+  }
+};
+
+function applyServiceDefaults(){
+  const selectedNames = state.services.filter(s => state.selectedServices.has(s.id)).map(s => s.name);
+  const titleEl = document.getElementById('title');
+  const bioEl = document.getElementById('bio');
+  if(!titleEl.value.trim()) titleEl.value = SERVICE_COPY.defaultTitle(selectedNames);
+  if(!bioEl.value.trim()) bioEl.value = SERVICE_COPY.defaultBio(selectedNames);
+}
+
+function makePicker({ rootEl, items, selectedSet, listEl, chipsEl, searchEl, onChange }) {
+  function openList(){ listEl.classList.add('open'); }
+  function closeList(){ listEl.classList.remove('open'); }
+
+  function renderList() {
+    const q = searchEl.value.trim().toLowerCase();
+    const filtered = items.filter(i => i.name.toLowerCase().includes(q) && !selectedSet.has(i.id));
+    listEl.innerHTML = filtered.map(i => `<div class="opt" data-id="${i.id}">${i.name}</div>`).join('') || '<div class="muted" style="padding:10px">Sin resultados</div>';
+
+    listEl.querySelectorAll('.opt[data-id]').forEach(opt => {
+      opt.addEventListener('click', () => {
+        selectedSet.add(String(opt.dataset.id));
+        searchEl.value = '';
+        renderList();
+        renderChips();
+        openList();
+        if (onChange) onChange();
+      });
+    });
+  }
+
+  function renderChips() {
+    const selected = items.filter(i => selectedSet.has(i.id));
+    chipsEl.innerHTML = selected.map(i => `<span class="chip">${i.name}<button type="button" data-del="${i.id}">×</button></span>`).join('') || '<span class="muted">Nada seleccionado</span>';
+    chipsEl.querySelectorAll('button[data-del]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedSet.delete(String(btn.dataset.del));
+        renderList();
+        renderChips();
+        if (onChange) onChange();
+      });
+    });
+  }
+
+  searchEl.addEventListener('focus', () => { renderList(); openList(); });
+  searchEl.addEventListener('click', () => { renderList(); openList(); });
+  searchEl.addEventListener('input', () => { renderList(); openList(); });
+  searchEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const first = listEl.querySelector('.opt[data-id]');
+      if (first) {
+        selectedSet.add(String(first.dataset.id));
+        searchEl.value = '';
+        renderList();
+        renderChips();
+        openList();
+        if (onChange) onChange();
+      }
+    }
+  });
+
+  document.addEventListener('click', (e) => { if (!rootEl.contains(e.target)) closeList(); });
+
+  renderList();
+  renderChips();
+
+  return { renderList, renderChips, clear(){ selectedSet.clear(); renderList(); renderChips(); if(onChange) onChange(); } };
+}
+
+let servicesPicker, zonesPicker;
+
+function buildHourOptions(){
+  const from = document.getElementById('hour_from');
+  const to = document.getElementById('hour_to');
+  const opts = [];
+  for(let h=0; h<24; h++){
+    for(let m=0; m<60; m+=30){
+      const hh = String(h).padStart(2,'0');
+      const mm = String(m).padStart(2,'0');
+      const value = `${hh}:${mm}`;
+      const hour12 = ((h+11)%12)+1;
+      const ampm = h<12 ? 'AM' : 'PM';
+      opts.push({value, label:`${hour12}:${mm} ${ampm}`});
+    }
+  }
+  const html = opts.map(o=>`<option value="${o.value}">${o.label}</option>`).join('');
+  from.innerHTML = html; to.innerHTML = html;
+  from.value = '08:00'; to.value = '18:00';
+}
+
+function initDayChips(){
+  document.querySelectorAll('#days .day-chip').forEach(btn=>{
+    const day = btn.dataset.day;
+    if(state.selectedDays.has(day)) btn.classList.add('active');
+    btn.addEventListener('click',()=>{
+      if(state.selectedDays.has(day)){ state.selectedDays.delete(day); btn.classList.remove('active'); }
+      else { state.selectedDays.add(day); btn.classList.add('active'); }
+    });
+  });
+}
+
+async function parseProfileId(){
+  const p = new URLSearchParams(location.search);
+  const val = String(p.get('profile_id') || p.get('pid') || '').trim();
+  state.profileId = val || null;
+  document.getElementById('profile_id').value = state.profileId ? String(state.profileId) : 'Pendiente de asignación';
+
+  let membershipStatus = 'inactive';
+  if (state.profileId) {
+    try {
+      const r = await fetch(`/chiriperos/${state.profileId}`);
+      if (r.ok) {
+        const data = await r.json();
+        membershipStatus = String(data.membership_status || 'inactive');
+      }
+    } catch {}
+  }
+  document.getElementById('onboardingStepperAd').style.display = (state.profileId && membershipStatus !== 'active') ? 'block' : 'none';
+}
+
+function initUploads(){
+  const photosInput = document.getElementById('work_photos_files');
+  const photosBtn = document.getElementById('uploadPhotosBtn');
+  const photosList = document.getElementById('photosList');
+
+  const bannerInput = document.getElementById('banner_file');
+  const bannerBtn = document.getElementById('uploadBannerBtn');
+  const bannerList = document.getElementById('bannerList');
+
+  function fileKey(f){ return `${f.name}__${f.size}__${f.lastModified}`; }
+  function renderPhotosList(){
+    photosList.innerHTML = state.workPhotoFiles.map((f, idx) =>
+      `<li>${f.name} <button type="button" data-rm="${idx}" style="border:none;background:transparent;color:#dc2626;font-weight:800;cursor:pointer">✕</button></li>`
+    ).join('');
+    photosList.querySelectorAll('button[data-rm]').forEach(b => {
+      b.addEventListener('click', () => { state.workPhotoFiles.splice(Number(b.dataset.rm), 1); renderPhotosList(); });
+    });
+  }
+
+  function renderBannerList(){
+    if (!state.bannerFile) { bannerList.innerHTML = ''; return; }
+    bannerList.innerHTML = `<li>${state.bannerFile.name} <button type="button" id="rmBanner" style="border:none;background:transparent;color:#dc2626;font-weight:800;cursor:pointer">✕</button></li>`;
+    document.getElementById('rmBanner').addEventListener('click', () => { state.bannerFile = null; bannerInput.value = ''; renderBannerList(); });
+  }
+
+  photosBtn.addEventListener('click', () => photosInput.click());
+  photosInput.addEventListener('change', () => {
+    const incoming = Array.from(photosInput.files || []);
+    const existing = new Set(state.workPhotoFiles.map(fileKey));
+    incoming.forEach(f => { if(!existing.has(fileKey(f))) state.workPhotoFiles.push(f); });
+    photosInput.value = '';
+    renderPhotosList();
+  });
+
+  bannerBtn.addEventListener('click', () => bannerInput.click());
+  bannerInput.addEventListener('change', () => {
+    state.bannerFile = (bannerInput.files || [])[0] || null;
+    renderBannerList();
+  });
+}
+
+async function init(){
+  await parseProfileId();
+  const [services,zones]=await Promise.all([fetch('/servicios').then(r=>r.json()),fetch('/zonas').then(r=>r.json())]);
+  state.services = services.map(x=>({id:String(x.id),name:x.name}));
+  state.zones = zones.map(x=>({id:String(x.id),name:x.name}));
+
+  servicesPicker = makePicker({
+    rootEl: document.getElementById('servicesPicker'),
+    items: state.services,
+    selectedSet: state.selectedServices,
+    listEl: document.getElementById('servicesList'),
+    chipsEl: document.getElementById('servicesChips'),
+    searchEl: document.getElementById('servicesSearch'),
+    onChange: applyServiceDefaults
+  });
+
+  zonesPicker = makePicker({
+    rootEl: document.getElementById('zonesPicker'),
+    items: state.zones,
+    selectedSet: state.selectedZones,
+    listEl: document.getElementById('zonesList'),
+    chipsEl: document.getElementById('zonesChips'),
+    searchEl: document.getElementById('zonesSearch')
+  });
+
+  buildHourOptions();
+  initDayChips();
+  initUploads();
+}
+
+async function saveAd(){
+  const st=document.getElementById('status'); st.textContent='Guardando...';
+  const profile_id = state.profileId;
+  const from = document.getElementById('hour_from').value;
+  const to = document.getElementById('hour_to').value;
+  const days = Array.from(state.selectedDays);
+
+  const payload={
+    title:document.getElementById('title').value.trim()||null,
+    bio:document.getElementById('bio').value.trim(),
+    service_ids:Array.from(state.selectedServices),
+    zone_ids:Array.from(state.selectedZones),
+    available_hours: days.length ? `${days.join(', ')} · ${from} - ${to}` : `${from} - ${to}`,
+    work_photos: [
+      ...(state.bannerFile ? [`upload://${state.bannerFile.name}`] : []),
+      ...state.workPhotoFiles.map(f => `upload://${f.name}`)
+    ]
+  };
+
+  if(!profile_id){ st.innerHTML='<span class="warn">Este perfil aún no tiene ID asignado. Ábrelo con ?profile_id=123.</span>'; return; }
+  if(!payload.bio||payload.service_ids.length===0||payload.zone_ids.length===0){
+    st.innerHTML='<span class="warn">Falta info obligatoria: descripción, servicios y zonas.</span>';
+    return;
+  }
+
+  const r=await fetch(`/chiriperos/${profile_id}/ad-setup`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const out=await r.json().catch(()=>({error:'error'}));
+  if(!r.ok){ st.innerHTML=`<span class="warn">Error: ${out.error||'no se pudo guardar'}</span>`; return; }
+  st.innerHTML='<span class="ok">✅ Paso guardado. Abriendo panel de membresía...</span>';
+  setTimeout(() => { window.location.href = `/demo/membresia.html?profile_id=${profile_id}`; }, 500);
+}
+
+function resetForm(){
+  document.getElementById('title').value='';
+  document.getElementById('bio').value='';
+  document.getElementById('hour_from').value='08:00';
+  document.getElementById('hour_to').value='18:00';
+  document.getElementById('work_photos_files').value='';
+  document.getElementById('banner_file').value='';
+  state.workPhotoFiles = []; state.bannerFile = null;
+  document.getElementById('photosList').innerHTML='';
+  document.getElementById('bannerList').innerHTML='';
+  state.selectedServices.clear(); state.selectedZones.clear();
+  servicesPicker.renderList(); servicesPicker.renderChips();
+  zonesPicker.renderList(); zonesPicker.renderChips();
+  state.selectedDays = new Set(['Lun','Mar','Mié','Jue','Vie','Sáb']);
+  document.querySelectorAll('#days .day-chip').forEach(btn=>{
+    const day = btn.dataset.day;
+    if(state.selectedDays.has(day)) btn.classList.add('active'); else btn.classList.remove('active');
+  });
+  document.getElementById('status').textContent='Formulario limpiado.';
+}
+
+init();
+</script>
+</body>
+</html>

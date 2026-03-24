@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Perfil | CHIRIPAPP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#f4f9fd;--card:#fff;--text:#0f172a;--muted:#475569;--brand:#1ea4de;--line:#dbe8f2}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);font-family:Inter,Arial;color:var(--text)}
+    .container{max-width:980px;margin:0 auto;padding:18px}
+    .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+    .btn{border:1px solid var(--line);background:#fff;padding:10px 12px;border-radius:10px;text-decoration:none;color:var(--text);font-weight:600}
+    .hero{background:linear-gradient(135deg,var(--brand),#177fbf);color:#fff;border-radius:18px;padding:0;overflow:hidden}
+    .cover{height:240px;background:#dbeafe}
+    .cover img{width:100%;height:100%;object-fit:cover;display:block}
+    .hero-body{padding:20px}
+    .name{font-size:30px;font-weight:800;margin:0}
+    .bio{opacity:.95;margin-top:8px}
+    .meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .pill{background:rgba(255,255,255,.2);padding:6px 10px;border-radius:999px;font-size:13px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+    .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}
+    h3{margin:0 0 10px}
+    ul{margin:0;padding-left:18px;color:var(--muted)}
+    .actions{display:flex;gap:10px;margin-top:14px}
+    .wa{background:#25d366;color:#062b13}
+    .call{background:#0f172a;color:#fff}
+    .action{padding:11px 14px;border-radius:10px;text-decoration:none;font-weight:700;display:inline-block}
+    @media (max-width:720px){.grid{grid-template-columns:1fr}.name{font-size:25px}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top">
+      <a class="btn" href="/demo/">← Volver al listado</a>
+      <small id="status" style="color:#64748b"></small>
+    </div>
+
+    <section class="hero" id="hero">
+      <div class="cover"><img id="coverImg" alt="Imagen del servicio" /></div>
+      <div class="hero-body">
+        <h1 class="name">Cargando...</h1>
+        <p class="bio"></p>
+        <div class="meta" id="meta"></div>
+        <div class="actions" id="actions"></div>
+      </div>
+    </section>
+
+    <div class="grid">
+      <div class="card">
+        <h3>Servicios</h3>
+        <ul id="services"></ul>
+      </div>
+      <div class="card">
+        <h3>Zonas de cobertura</h3>
+        <ul id="zones"></ul>
+      </div>
+    </div>
+  </div>
+
+<script>
+function serviceArt(service){
+  const s = (service || '').toLowerCase();
+  if (s.includes('piscina') || s.includes('cisterna')) return '/demo/assets/services/cisterna-piscina.jpg';
+  if (s.includes('septic')) return '/demo/assets/services/septicos.png';
+  if (s.includes('limpieza')) return '/demo/assets/services/limpieza.png';
+  if (s.includes('plomer')) return '/demo/assets/services/plomero.png';
+  if (s.includes('electric')) return '/demo/assets/services/electricista.png';
+  if (s.includes('pintor')) return '/demo/assets/services/pintor.png';
+  if (s.includes('albañ') || s.includes('alba')) return '/demo/assets/services/albanil.jpg';
+  if (s.includes('a/c') || s.includes('aire')) return '/demo/assets/services/tecnico-ac.jpg';
+  if (s.includes('gomero')) return '/demo/assets/services/gomero.png';
+  if (s.includes('chofer')) return '/demo/assets/services/chofer.jpg';
+  if (s.includes('cerraj')) return '/demo/assets/services/cerrajero.jpg';
+  if (s.includes('inform')) return '/demo/assets/services/tecnico-informatico.jpg';
+  return '/demo/assets/logo_horizontal_trans.png';
+}
+
+const id = new URLSearchParams(location.search).get('id');
+const hero = document.getElementById('hero');
+if(!id){ hero.innerHTML = '<h2>Perfil no encontrado</h2>'; throw new Error('missing id'); }
+
+fetch('/chiriperos/' + id)
+  .then(r => r.ok ? r.json() : Promise.reject())
+  .then(x => {
+    document.querySelector('.name').textContent = x.display_name;
+    document.querySelector('.bio').textContent = x.bio || 'Sin descripción';
+    document.getElementById('status').textContent = 'Perfil activo';
+
+    const primaryService = (x.services && x.services[0] && x.services[0].name) ? x.services[0].name : 'Servicio general';
+    document.getElementById('coverImg').src = serviceArt(primaryService);
+
+    const meta = document.getElementById('meta');
+    meta.innerHTML = `<span class="pill">⭐ ${x.rating_avg} (${x.rating_count})</span><span class="pill">${primaryService}</span><span class="pill">Membresía: ${x.membership_status}</span>`;
+
+    document.getElementById('actions').innerHTML = `
+      <a class="action wa" href="https://wa.me/1${x.whatsapp_number}" target="_blank" rel="noopener">WhatsApp</a>
+      <a class="action call" href="tel:${x.call_number}">Llamar</a>
+    `;
+
+    const services = document.getElementById('services');
+    services.innerHTML = (x.services||[]).map(s => `<li>${s.name}</li>`).join('') || '<li>No definido</li>';
+
+    const zones = document.getElementById('zones');
+    zones.innerHTML = (x.zones||[]).map(z => `<li>${z.name}</li>`).join('') || '<li>No definido</li>';
+  })
+  .catch(() => {
+    hero.innerHTML = '<h2>Perfil no disponible</h2><p>Este perfil no existe o fue removido.</p>';
+  });
+</script>
+</body>
+</html>

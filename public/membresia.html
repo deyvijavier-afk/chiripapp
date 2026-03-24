@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Membresía | CHIRIPAPP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#f4f9fd;--card:#fff;--text:#0f172a;--muted:#475569;--brand:#1ea4de;--brand2:#177fbf;--line:#dbe8f2;--ok:#16a34a;--warn:#b45309}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Arial}
+    .container{max-width:980px;margin:0 auto;padding:16px}
+    .topbar{display:flex;align-items:center;justify-content:flex-start;padding:6px 0}
+    .logo-img{height:110px;max-width:560px;width:auto;object-fit:contain}
+    .hero{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-radius:18px;padding:18px;margin-bottom:12px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:10px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .plans-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+    @media(max-width:760px){.grid{grid-template-columns:1fr}.plans-grid{grid-template-columns:1fr}.plans-grid .plan-quarterly{grid-column:auto}}
+    label{display:block;font-size:13px;color:#334155;margin:4px 0 6px}
+    input,select,button{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px}
+    .id-wrap{display:flex;align-items:center;justify-content:flex-start;min-height:90px}
+    .id-value{font-size:26px;line-height:1;font-weight:800;color:#0f172a;letter-spacing:.5px}
+    .status-col{display:flex;flex-direction:column;align-items:center}
+    .status-col > label{text-align:center;width:100%}
+
+    .status-wrap{position:relative;display:flex;align-items:center;justify-content:center;min-height:90px}
+    .stepper{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;align-items:start}
+    .step-item{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;position:relative}
+    .step-dot{width:14px;height:14px;border-radius:999px;background:#cbd5e1;border:2px solid #94a3b8;position:relative;z-index:2}
+    .step-item.active .step-dot{background:#0ea5e9;border-color:#0284c7;box-shadow:0 0 0 4px rgba(14,165,233,.18)}
+    .step-label{font-size:11px;color:#475569;line-height:1.15}
+    .step-item.active .step-label{color:#0f172a;font-weight:700}
+    .step-item:not(:last-child)::after{content:'';position:absolute;top:7px;left:55%;right:-45%;height:2px;background:linear-gradient(90deg,#cbd5e1,#dbeafe)}
+    .status-pill{display:inline-flex;align-items:center;justify-content:center;padding:0;border:none;background:transparent}
+    .status-icon{width:60px;height:60px;object-fit:contain;display:block}
+    .status-icon.pending-boost{transform:scale(1.4);transform-origin:center}
+    .status-info{position:absolute;left:50%;top:66px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;white-space:nowrap}
+    .status-label{font-size:12px;color:#0c4a6e;font-weight:800}
+    .status-until{font-size:12px;color:#334155}
+
+    .plan{position:relative;border:1px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;overflow:hidden}
+    .plan.active{border-color:#0ea5e9;box-shadow:0 0 0 2px rgba(14,165,233,.2);background:linear-gradient(135deg,#e0f2fe,#dbeafe)}
+    .plan-price{font-size:28px;font-weight:800;line-height:1;color:#0f172a;margin-bottom:6px;white-space:nowrap}
+    .plan-name{font-size:12px;color:#475569;font-weight:500}
+    .badge{display:inline-block;background:#e0f2fe;color:#075985;border:1px solid #bae6fd;border-radius:999px;padding:3px 8px;font-size:12px}
+    .badge.popular{background:linear-gradient(135deg,#fde047,#f97316);color:#111827;border-color:#f59e0b;font-weight:800;box-shadow:0 0 16px rgba(249,115,22,.45);animation:popularGlow 1.4s ease-in-out infinite alternate}
+    .plan-until{margin-top:6px;font-size:12px;color:#334155}
+    .plan-quarterly{border:1px solid rgba(14,165,233,.35)}
+    .plan-quarterly::before{content:'';position:absolute;inset:-1px;border-radius:12px;padding:1px;background:linear-gradient(90deg,transparent 0%,rgba(34,211,238,.1) 20%,rgba(14,165,233,.95) 50%,rgba(99,102,241,.65) 65%,transparent 100%);background-size:220% 100%;-webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:neonTrace 2.2s linear infinite;pointer-events:none;filter:drop-shadow(0 0 7px rgba(14,165,233,.65))}
+    .plan-quarterly.active::before{filter:drop-shadow(0 0 11px rgba(99,102,241,.9))}
+    @keyframes neonTrace{from{background-position:200% 0}to{background-position:-20% 0}}
+    @keyframes popularGlow{from{box-shadow:0 0 10px rgba(249,115,22,.35),0 0 0 rgba(245,158,11,0)}to{box-shadow:0 0 22px rgba(249,115,22,.65),0 0 14px rgba(245,158,11,.45)}}
+
+    .chips{display:grid;grid-template-columns:1fr 1fr;gap:8px 4px;width:max-content;margin:0 auto}
+    .pay-chip{display:inline-flex;align-items:center;justify-content:center;padding:0;border-radius:999px;border:1px solid var(--line);background:#fff;color:#334155;font-size:12px;font-weight:700;cursor:pointer;height:34px;width:142px}
+    .pay-chip.active{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-color:#0ea5e9}
+    .pay-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start}
+    .pay-method-col{display:flex;flex-direction:column;justify-content:center;min-height:100%}
+    .pay-head{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end;margin-bottom:6px}
+    .pay-summary{border:1px solid var(--line);border-radius:12px;padding:10px;background:#f8fbfe}
+    .proof-wrap{max-width:50%}
+    .pay-row{display:grid;grid-template-columns:1fr auto;gap:8px;font-size:12px;color:#334155;padding:3px 0}
+    .pay-total{margin-top:8px;padding-top:8px;border-top:1px dashed #cbd5e1;font-weight:800;display:grid;grid-template-columns:1fr auto}
+    .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .btn{border:none;border-radius:10px;padding:11px 14px;font-weight:800;cursor:pointer}
+    .btn-primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff}
+    .btn-dark{background:var(--text);color:#fff}
+    .btn-fixed{width:50%;justify-self:end}
+    .btn-fixed.left{justify-self:start}
+    .muted{font-size:12px;color:var(--muted)} .ok{color:var(--ok);font-weight:700} .warn{color:var(--warn);font-weight:700}
+    @media(max-width:760px){
+      .btn-fixed{width:100%}
+      .plan-price{font-size:20px}
+      .plan-name{font-size:11px}
+      .badge{font-size:11px;padding:2px 7px}
+      .plan-until{font-size:11px}
+      .chips{gap:8px 4px}
+      .pay-card-grid{grid-template-columns:1fr}
+      .proof-wrap{max-width:100%}
+      .id-wrap{min-height:auto}
+      .id-value{font-size:24px}
+      .stepper{grid-template-columns:repeat(5,minmax(80px,1fr));overflow-x:auto;padding-bottom:2px}
+      .step-item{align-items:center;text-align:center;padding-left:0}
+      .step-item:not(:last-child)::after{display:block}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="topbar"><img class="logo-img" src="/demo/assets/logo_horizontal_trans.png" alt="CHIRIPAPP"/></div>
+    <section class="hero">
+      <h1 style="margin:0">Membresía</h1>
+      <div class="muted" style="color:#e2f2ff">Paso 2: Membresía y pago.</div>
+    </section>
+
+    <div class="card" id="onboardingStepper" style="display:none">
+      <div class="stepper">
+        <div class="step-item"><span class="step-dot"></span><span class="step-label">Registro</span></div>
+        <div class="step-item active"><span class="step-dot"></span><span class="step-label">Membresía y pago</span></div>
+        <div class="step-item"><span class="step-dot"></span><span class="step-label">Detalles de anuncio</span></div>
+        <div class="step-item"><span class="step-dot"></span><span class="step-label">En revisión</span></div>
+        <div class="step-item"><span class="step-dot"></span><span class="step-label">Completado</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="grid">
+        <div><label>ID perfil</label><div class="id-wrap"><span id="profile_id" class="id-value">12</span></div></div>
+        <div class="status-col">
+          <label>Estado de tu membresía</label>
+          <div class="status-wrap">
+            <span id="profile_status_badge" class="status-pill"><img class="status-icon" src="/demo/assets/profile_status/user_pending.png" alt="estado" /></span>
+            <div class="status-info">
+              <span id="profile_status_text" class="status-label">Pendiente de pago</span>
+              <span id="profile_status_until" class="status-until"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap">
+        <label style="margin:0">Selecciona un plan</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <label style="margin:0;font-size:11px;color:#64748b">Código promo</label>
+          <input id="promo_code" placeholder="Introduzca su código" style="width:180px;padding:7px 10px;font-size:12px" />
+        </div>
+      </div>
+      <div class="plans-grid" style="margin-top:8px">
+        <div class="plan" data-plan="weekly" onclick="pickPlan('weekly')">
+          <div class="plan-price" id="priceWeekly">RD$300.00</div>
+          <div class="plan-name">Semanal</div>
+          <div class="badge popular" id="popularWeekly" style="display:none">Más popular</div>
+          <div class="plan-until" id="untilWeekly"></div>
+        </div>
+        <div class="plan" data-plan="monthly" onclick="pickPlan('monthly')">
+          <div class="plan-price" id="priceMonthly">RD$1,000.00</div>
+          <div class="plan-name">Mensual</div>
+          <div class="badge" id="saveBadgeMonthly">Ahorro 17%</div>
+          <div class="badge popular" id="popularMonthly" style="display:none">Más popular</div>
+          <div class="plan-until" id="untilMonthly"></div>
+        </div>
+        <div class="plan plan-quarterly" data-plan="quarterly" onclick="pickPlan('quarterly')">
+          <div class="plan-price" id="priceQuarterly">RD$2,500.00</div>
+          <div class="plan-name">Trimestral</div>
+          <div class="badge" id="saveBadgeQuarterly">Ahorro 31%</div>
+          <div class="badge popular" id="popularQuarterly" style="display:none">Más popular</div>
+          <div class="plan-until" id="untilQuarterly"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="pay-head">
+        <label style="margin:0">Pago y confirmación</label>
+        <label style="margin:0">Método de pago</label>
+      </div>
+      <div class="pay-card-grid">
+        <div class="pay-summary">
+          <label style="margin-top:0;margin-bottom:8px">Monto a pagar</label>
+          <div class="pay-row"><span id="sumPlanLabel">Plan <strong>Semanal</strong></span><span id="sumAmount">RD$254.24</span></div>
+          <div class="pay-row"><span>ITBIS (18%):</span><span id="sumItbis">RD$45.76</span></div>
+          <div class="pay-row" id="promoRow" style="display:none"><span id="sumPromoLabel">Código promo</span><span id="sumPromoAmount" style="color:#dc2626">-RD$0.00</span></div>
+          <div class="pay-total"><span>Total a pagar:</span><span id="sumTotal">RD$300.00</span></div>
+        </div>
+        <div class="pay-method-col">
+          <div class="chips" id="payment_method_chips">
+            <button type="button" class="pay-chip active" data-method="Transferencia">Transferencia</button>
+            <button type="button" class="pay-chip" data-method="Azul">Azul</button>
+            <button type="button" class="pay-chip" data-method="Tarjeta de Crédito (Visa/Mastercard)">Tarjeta crédito/débito</button>
+            <button type="button" class="pay-chip" data-method="Otro">Otro</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="proof-wrap">
+        <label>Comprobante de pago (obligatorio)</label>
+        <div style="margin-bottom:8px">
+          <label>Referencia / autorización</label>
+          <input id="payment_reference"/>
+        </div>
+        <input id="proof_file" type="file" accept="image/*,.pdf" style="display:none" />
+        <button type="button" class="pay-chip active" id="proofUploadBtn">📁 Cargar comprobante</button>
+        <div id="proofFileName" class="muted" style="margin-top:6px"></div>
+      </div>
+    </div>
+
+    <div class="actions" style="grid-template-columns:1fr;justify-items:end;margin-top:10px">
+      <button type="button" class="pay-chip active" onclick="submitMembership()">Enviar</button>
+    </div>
+
+    <div id="status" class="muted" style="margin-top:10px"></div>
+  </div>
+
+<script>
+const state = {
+  profileId: null,
+  membershipStatus: 'inactive',
+  membershipExpiresAt: null,
+  plan: 'weekly',
+  paymentMethod: 'Transferencia',
+  plans: {
+    weekly: { amount: 300, days: 7 },
+    monthly: { amount: 1000, days: 30, savings: 16.7 },
+    quarterly: { amount: 2500, days: 90, savings: 16.7 },
+  }
+};
+
+function formatMoney(v){ return `RD$${Number(v||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`; }
+function fmtDate(d){ return d.toLocaleDateString('es-DO',{day:'2-digit',month:'2-digit',year:'numeric'}); }
+function addDays(d,days){ const x=new Date(d); x.setDate(x.getDate()+days); return x; }
+
+function renderStatus(){
+  const text = document.getElementById('profile_status_text');
+  const until = document.getElementById('profile_status_until');
+  const badge = document.getElementById('profile_status_badge');
+
+  const raw = String(state.membershipStatus || '').toLowerCase();
+  const alias = {
+    pending_payment: 'pending',
+    in_review: 'pending',
+    review: 'pending',
+    grace: 'paused',
+    banned: 'suspended',
+    disabled: 'suspended',
+    inactive: 'pending',
+  };
+  const key = alias[raw] || raw || 'pending';
+
+  const meta = {
+    active: { icon: '/demo/assets/profile_status/user_active.png', label: 'Activo' },
+    pending: { icon: '/demo/assets/profile_status/user_pending.png', label: 'Pendiente de pago' },
+    paused: { icon: '/demo/assets/profile_status/user_paused.png', label: 'Pausado' },
+    suspended: { icon: '/demo/assets/profile_status/user_suspended.png', label: 'Suspendido' },
+  };
+
+  const picked = meta[key] || meta.pending;
+  const extraClass = key === 'pending' ? ' pending-boost' : '';
+  badge.innerHTML = `<img class="status-icon${extraClass}" src="${picked.icon}" alt="estado" />`;
+  text.textContent = picked.label;
+
+  if(key === 'active' && state.membershipExpiresAt){
+    const now = new Date();
+    const end = new Date(state.membershipExpiresAt);
+    const days = Math.max(0, Math.ceil((end - now)/86400000));
+    until.textContent = `Activo hasta ${fmtDate(end)} (${days} días restantes)`;
+  } else {
+    until.textContent = '';
+  }
+}
+
+function renderPlanDates(){
+  const now = new Date();
+  const base = (state.membershipStatus === 'active' && state.membershipExpiresAt && new Date(state.membershipExpiresAt) > now)
+    ? new Date(state.membershipExpiresAt)
+    : now;
+
+  const w = addDays(base, state.plans.weekly.days);
+  const m = addDays(base, state.plans.monthly.days);
+  const q = addDays(base, state.plans.quarterly.days);
+
+  document.getElementById('untilWeekly').textContent = `Activo hasta ${fmtDate(w)}`;
+  document.getElementById('untilMonthly').textContent = `Activo hasta ${fmtDate(m)}`;
+  document.getElementById('untilQuarterly').textContent = `Activo hasta ${fmtDate(q)}`;
+}
+
+async function parseProfile(){
+  const p = new URLSearchParams(location.search);
+  state.profileId = String(p.get('profile_id') || p.get('pid') || '').trim();
+  const prettyId = state.profileId ? `CHP-${state.profileId.replace(/-/g,'').slice(-8).toUpperCase()}` : '—';
+  document.getElementById('profile_id').textContent = prettyId;
+
+  if(state.profileId){
+    try{
+      const r = await fetch(`/chiriperos/${state.profileId}`);
+      if(r.ok){
+        const data = await r.json();
+        state.membershipStatus = String(data.membership_status || 'inactive');
+        state.membershipExpiresAt = data.membership_expires_at || null;
+      }
+    }catch{}
+  }
+
+  // Fallback visual para demo cuando no haya fecha aún.
+  if(state.membershipStatus === 'active' && !state.membershipExpiresAt){
+    const preview = new Date();
+    preview.setDate(preview.getDate() + 11);
+    state.membershipExpiresAt = preview.toISOString();
+  }
+
+  // Mostrar stepper para flujo onboarding mientras no esté activo.
+  const showStepper = !!state.profileId && state.membershipStatus !== 'active';
+  document.getElementById('onboardingStepper').style.display = showStepper ? 'block' : 'none';
+
+  renderStatus();
+}
+
+async function renderPaymentSummary(){
+  const planNameMap = {weekly:'Semanal', monthly:'Mensual', quarterly:'Trimestral'};
+  const amount = Number(state.plans[state.plan].amount || 0);
+  const baseWithoutTax = amount / 1.18;
+  const itbisBase = amount * 0.18;
+  const promoCode = (document.getElementById('promo_code')?.value || '').trim().toUpperCase();
+
+  let promoDiscount = 0;
+  let promoPercent = 0;
+  if (promoCode) {
+    try {
+      const r = await fetch(`/promo-codes/validate?code=${encodeURIComponent(promoCode)}&amount=${encodeURIComponent(String(amount))}`);
+      if (r.ok) {
+        const out = await r.json();
+        if (out?.valid) {
+          promoDiscount = Number(out.discountAmount || 0);
+          promoPercent = Number(out.percent || 0);
+        }
+      }
+    } catch {}
+  }
+
+  const total = Math.max(0, amount - promoDiscount);
+
+  const planName = planNameMap[state.plan] || state.plan;
+  document.getElementById('sumPlanLabel').innerHTML = `Plan <strong>${planName}:</strong>`;
+  document.getElementById('sumAmount').textContent = formatMoney(baseWithoutTax);
+  document.getElementById('sumItbis').textContent = formatMoney(itbisBase);
+
+  const promoRow = document.getElementById('promoRow');
+  if (promoDiscount > 0) {
+    promoRow.style.display = 'grid';
+    document.getElementById('sumPromoLabel').innerHTML = `Código promo <strong>${promoCode}</strong> (-${promoPercent}%):`;
+    document.getElementById('sumPromoAmount').textContent = `-${formatMoney(promoDiscount)}`;
+  } else {
+    promoRow.style.display = 'none';
+  }
+
+  document.getElementById('sumTotal').textContent = formatMoney(total);
+}
+
+function pickPlan(code){
+  state.plan = code;
+  document.querySelectorAll('.plan').forEach(el => el.classList.toggle('active', el.dataset.plan === code));
+  renderPaymentSummary();
+}
+
+async function loadPlans(){
+  const r = await fetch('/membership/plans');
+  const out = await r.json();
+  const plans = out.plans || [];
+
+  for(const p of plans){
+    if(state.plans[p.code]){
+      state.plans[p.code].amount = Number(p.amount || state.plans[p.code].amount);
+      state.plans[p.code].days = Number(p.days || state.plans[p.code].days);
+      if(typeof p.savings_percent === 'number') state.plans[p.code].savings = p.savings_percent;
+    }
+  }
+
+  document.getElementById('priceWeekly').textContent = formatMoney(state.plans.weekly.amount);
+  document.getElementById('priceMonthly').textContent = formatMoney(state.plans.monthly.amount);
+  document.getElementById('priceQuarterly').textContent = formatMoney(state.plans.quarterly.amount);
+  document.getElementById('saveBadgeMonthly').textContent = `Ahorro ${state.plans.monthly.savings}%`;
+  document.getElementById('saveBadgeQuarterly').textContent = `Ahorro ${state.plans.quarterly.savings}%`;
+
+  document.getElementById('popularWeekly').style.display = plans.find(p=>p.code==='weekly' && p.most_popular) ? 'inline-block' : 'none';
+  document.getElementById('popularMonthly').style.display = plans.find(p=>p.code==='monthly' && p.most_popular) ? 'inline-block' : 'none';
+  document.getElementById('popularQuarterly').style.display = plans.find(p=>p.code==='quarterly' && p.most_popular) ? 'inline-block' : 'none';
+
+  renderPlanDates();
+  renderPaymentSummary();
+}
+
+async function submitMembership(){
+  const st = document.getElementById('status');
+  st.textContent = 'Enviando...';
+  if(!state.profileId){ st.innerHTML = '<span class="warn">Falta profile_id en URL.</span>'; return; }
+
+  const proof = (document.getElementById('proof_file').files || [])[0];
+  if(!proof){ st.innerHTML = '<span class="warn">Sube comprobante.</span>'; return; }
+
+  const payload = {
+    plan_code: state.plan,
+    payment_method: state.paymentMethod,
+    payment_reference: document.getElementById('payment_reference').value.trim(),
+    promo_code: document.getElementById('promo_code').value.trim() || null,
+    payment_proof_url: `upload://${proof.name}`,
+    amount: Number(state.plans[state.plan].amount),
+  };
+
+  if(!payload.payment_reference){ st.innerHTML = '<span class="warn">Falta referencia.</span>'; return; }
+
+  const r = await fetch(`/chiriperos/${state.profileId}/membership-submit`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  const out = await r.json().catch(() => ({error:'error'}));
+  if(!r.ok){ st.innerHTML = `<span class="warn">Error: ${out.error || 'no se pudo enviar'}</span>`; return; }
+  st.innerHTML = '<span class="ok">✅ Pago enviado para validación admin.</span>';
+}
+
+function initPaymentMethodChips(){
+  document.querySelectorAll('#payment_method_chips .pay-chip').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      state.paymentMethod = btn.dataset.method;
+      document.querySelectorAll('#payment_method_chips .pay-chip').forEach(x=>x.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+}
+
+function initProofUpload(){
+  const input = document.getElementById('proof_file');
+  const btn = document.getElementById('proofUploadBtn');
+  const name = document.getElementById('proofFileName');
+  if(!input || !btn) return;
+  btn.addEventListener('click',()=>input.click());
+  input.addEventListener('change',()=>{
+    const f = (input.files||[])[0];
+    name.textContent = f ? `Archivo: ${f.name}` : '';
+  });
+}
+
+function resetForm(){
+  pickPlan('weekly');
+  state.paymentMethod = 'Transferencia';
+  document.querySelectorAll('#payment_method_chips .pay-chip').forEach(x=>x.classList.remove('active'));
+  const first = document.querySelector('#payment_method_chips .pay-chip[data-method="Transferencia"]');
+  if(first) first.classList.add('active');
+  document.getElementById('payment_reference').value = '';
+  document.getElementById('promo_code').value = '';
+  document.getElementById('proof_file').value = '';
+}
+
+(async function init(){
+  await parseProfile();
+  await loadPlans();
+  initPaymentMethodChips();
+  initProofUpload();
+  const promoEl = document.getElementById('promo_code');
+  if (promoEl) promoEl.addEventListener('input', renderPaymentSummary);
+  pickPlan('weekly');
+})();
+</script>
+</body>
+</html>

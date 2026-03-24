@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chiriperos Admin | CHIRIPAPP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f4f9fd;--card:#fff;--text:#0f172a;--muted:#475569;--brand:#1ea4de;--brand2:#177fbf;--line:#dbe8f2;
+      --ok:#16a34a;--warn:#b45309;--danger:#dc2626;--shadow:0 18px 40px rgba(15,23,42,.08);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial;overflow-x:hidden}
+    .shell{display:grid;grid-template-columns:280px 1fr;min-height:100vh;transition:grid-template-columns .2s ease}
+    .shell.collapsed{grid-template-columns:0 1fr}
+    .sidebar-backdrop{display:none}
+    .sidebar{background:#ffffff;color:#0f172a;padding:22px 18px;position:sticky;top:0;height:100vh;overflow:auto;transition:transform .22s ease,opacity .22s ease;border-right:1px solid var(--line);box-shadow:0 10px 30px rgba(15,23,42,.05)}
+    .shell.collapsed .sidebar{transform:translateX(-100%);opacity:0;pointer-events:none}
+    .brand{display:flex;flex-direction:column;gap:10px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+    .brand img{width:180px;max-width:100%;object-fit:contain;filter:none}
+    .nav-group{margin-top:20px}.nav-title{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8;margin:0 0 10px 10px}
+    .nav-list{display:flex;flex-direction:column;gap:6px}.nav-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:14px;color:#334155;text-decoration:none;font-size:14px;font-weight:600}
+    .nav-item.active{background:linear-gradient(135deg,#e0f2fe,#dbeafe);color:#075985;border:1px solid #bae6fd}
+    .nav-item.muted{opacity:.76}
+
+    .main{padding:22px;min-width:0}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+    .topbar-left{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .icon-btn,.btn{border:none;border-radius:14px;padding:11px 14px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+    .icon-btn{width:46px;height:46px;padding:0;background:#fff;border:1px solid var(--line);font-size:18px}
+    .btn-primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;box-shadow:0 10px 24px rgba(23,127,191,.22)}
+    .btn-ghost{background:#fff;color:var(--text);border:1px solid var(--line)}
+    .btn-danger{background:#fff1f2;color:#b91c1c;border:1px solid #fecdd3}
+    .btn-success{background:#ecfdf5;color:#166534;border:1px solid #bbf7d0}
+
+    .hero{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-radius:22px;padding:14px 16px;box-shadow:0 18px 40px rgba(23,127,191,.24);margin-bottom:14px}
+    .hero-inner{width:100%}
+    .hero-summary,.hero-summary.desktop-only{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;align-items:stretch}
+    .hero-stat{background:linear-gradient(180deg,rgba(255,255,255,.20),rgba(255,255,255,.12));border:1px solid rgba(255,255,255,.20);border-radius:16px;padding:12px 14px;backdrop-filter:blur(10px);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 10px 24px rgba(5,55,96,.12)}
+    .hero-stat-label{font-size:11px;color:rgba(255,255,255,.76);margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+    .hero-stat-value{font-size:30px;font-weight:800;line-height:1;color:#fff}
+    .hero-stat-sub{margin-top:6px;font-size:12px;color:rgba(255,255,255,.82);line-height:1.3}
+
+    .grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:14px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 2px 8px rgba(15,23,42,.05)}
+    .metric-label{font-size:12px;color:#64748b;margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+    .metric-value{font-size:30px;font-weight:800;line-height:1}.metric-sub{margin-top:8px;font-size:13px;color:#475569}
+
+    .toolbar{display:grid;grid-template-columns:minmax(320px,1fr) auto;gap:10px;align-items:center;margin-bottom:0}
+    .toolbar input,.toolbar select{width:100%;padding:12px;border:1px solid var(--line);border-radius:14px;background:#fff;font-size:14px}
+    .toolbar .btn{white-space:nowrap}
+
+    .filter-row{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;margin-bottom:10px;padding-bottom:2px}
+    .tabs,.chips{display:contents}
+    .tab{border:1px solid var(--line);background:#fff;padding:9px 12px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;color:#334155;white-space:nowrap;flex:0 0 auto}
+    .tab.active{background:#0f172a;color:#fff;border-color:#0f172a}
+    .chip{border:1px solid var(--line);background:#fff;padding:8px 12px;border-radius:999px;font-size:12px;font-weight:800;cursor:pointer;color:#334155;white-space:nowrap;flex:0 0 auto}
+    .chip.active{background:#172554;color:#fff;border-color:#172554}
+    .mobile-sticky-tools{display:contents}
+
+    .bulk-bar{display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--line);background:#f8fbfe}
+    .bulk-bar.active{display:flex}
+    .bulk-info{font-size:13px;color:#334155;font-weight:700}
+    .bulk-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+    .table-card{overflow:hidden;padding:0;min-width:0}
+    .table-wrap{overflow-x:auto;overflow-y:visible;max-width:100%}
+    table{width:100%;border-collapse:collapse;min-width:1120px;table-layout:fixed}
+    thead th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#64748b;background:#f8fbfe;padding:12px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:bottom;position:relative}
+    thead .th-controls{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+    thead .th-btn{display:inline-flex;align-items:center;gap:6px;background:none;border:none;padding:0;font:inherit;color:inherit;font-weight:800;cursor:pointer;text-transform:inherit;letter-spacing:inherit;min-width:0;flex:1 1 auto}
+    thead .th-btn .th-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .sort-indicator{font-size:11px;color:#94a3b8;flex:0 0 auto}
+    .th-filter-dropdown{position:relative;flex:0 0 auto}
+    .th-filter-dropdown summary{list-style:none;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:10px;background:#fff;color:#475569;cursor:pointer;font-size:14px}
+    .th-filter-dropdown summary::-webkit-details-marker{display:none}
+    .th-filter-dropdown[open] summary{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}
+    .dd-list{position:absolute;top:calc(100% + 8px);right:0;min-width:220px;max-width:280px;max-height:260px;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px;box-shadow:var(--shadow);z-index:20}
+    .dd-empty{font-size:12px;color:#64748b;padding:6px 4px}
+    .dd-option{display:flex;align-items:flex-start;gap:8px;padding:6px 4px;font-size:12px;color:#334155;text-transform:none;letter-spacing:normal;font-weight:600}
+    .dd-option input{margin-top:2px}
+    .dd-option span{word-break:break-word}
+    .dd-date-input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;color:#334155}
+    tbody td{padding:12px 10px;border-bottom:1px solid #edf2f7;vertical-align:middle}
+    tbody tr:hover{background:#fbfdff}
+    .mobile-list{display:none}
+    .mobile-item{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px 14px;box-shadow:0 2px 8px rgba(15,23,42,.05)}
+    .mobile-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start}
+    .mobile-main{min-width:0}
+    .mobile-topline{display:flex;align-items:center;gap:8px;min-width:0}
+    .mobile-topline strong{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .mobile-service-line{margin-top:4px;font-size:13px;color:var(--text);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .mobile-subline{margin-top:4px;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .mobile-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+    .mobile-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px;min-width:88px}
+    .mobile-docs{font-size:12px;font-weight:700;color:#334155;background:#f8fbfe;border:1px solid var(--line);border-radius:999px;padding:6px 10px;white-space:nowrap}
+    .mobile-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .mobile-actions .action-link{flex:1;justify-content:center;text-align:center}
+    .mobile-stack{display:flex;flex-direction:column;gap:10px}
+    .mobile-only{display:none}
+    .desktop-only{display:block}
+    .mini{font-size:12px;color:#64748b;line-height:1.4}
+    .badge{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:800;text-transform:capitalize;white-space:nowrap}
+    .badge.approved,.badge.active,.badge.visible{background:#dcfce7;color:#166534}
+    .badge.pending,.badge.in_review,.badge.review,.badge.por_vencer{background:#fef3c7;color:#92400e}
+    .badge.rejected,.badge.inactive,.badge.expired,.badge.suspended{background:#fee2e2;color:#b91c1c}
+    .badge.default{background:#e2e8f0;color:#334155}
+    .zones-inline{max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#475569;font-size:13px}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}.action-link{padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--text);text-decoration:none;font-size:12px;font-weight:700}
+    .empty{padding:22px;text-align:center;color:#64748b}
+    .checkbox-col{width:42px}
+    .rating-cell{font-weight:800;color:#0f172a;white-space:nowrap}
+    .rating-score{display:inline-block;min-width:28px;margin-right:6px}
+    .member-cell,.expires-cell,.status-cell{white-space:nowrap}
+    .name-compact,.service-compact{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+    .selection-mode .col-actions,.selection-mode td[data-col="actions"]{display:none}
+
+    @media (max-width:1260px){.hero-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media (max-width:1100px){.grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media (max-width:900px){.shell,.shell.collapsed{grid-template-columns:1fr}.sidebar{position:fixed;left:0;width:280px;z-index:30}.shell.collapsed .sidebar{transform:translateX(-100%)}.sidebar-backdrop{display:block;position:fixed;inset:0;background:rgba(15,23,42,.38);z-index:25;opacity:1;transition:opacity .2s ease}.shell.collapsed + .sidebar-backdrop{opacity:0;pointer-events:none}.main{padding:14px;min-width:0;width:100%}}
+    @media (max-width:700px){.grid-4{grid-template-columns:1fr}.hero{display:none}.toolbar{grid-template-columns:1fr}.topbar{align-items:stretch}.topbar-left{align-items:center}.topbar > div:last-child{width:100%}.topbar > div:last-child .btn{flex:1}.tabs{overflow:auto;flex-wrap:nowrap;padding-bottom:4px;margin-bottom:10px}.tab{white-space:nowrap}.desktop-only{display:none}.mobile-only{display:block}.table-card{padding:10px}.card{border-radius:16px;padding:14px}.icon-btn{width:42px;height:42px}.sidebar{width:88vw;max-width:320px}.mobile-item{padding:12px}.mobile-row{grid-template-columns:minmax(0,1fr)}.mobile-right{align-items:flex-start;min-width:0}.mobile-subline{white-space:normal}.mobile-sticky-tools{display:block;position:sticky;top:0;z-index:8;background:linear-gradient(180deg,var(--card) 0%,var(--card) 88%,rgba(255,255,255,.94) 100%);padding-bottom:10px;margin-bottom:4px}.mobile-sticky-tools .toolbar{margin-bottom:0}}
+  </style>
+</head>
+<body>
+  <div class="shell collapsed" id="appShell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <img src="/demo/assets/logo_horizontal_trans.png" alt="CHIRIPAPP" />
+      </div>
+      <div class="nav-group">
+        <p class="nav-title">Principal</p>
+        <div class="nav-list">
+          <a class="nav-item" href="/demo/admin-dashboard.html">📊 Dashboard</a>
+        </div>
+      </div>
+      <div class="nav-group">
+        <p class="nav-title">Operaciones</p>
+        <div class="nav-list">
+          <a class="nav-item active" href="/demo/admin-chiriperos.html">👷 Chiriperos</a>
+          <a class="nav-item" href="/demo/admin-review.html">🛡️ Revisiones</a>
+          <a class="nav-item" href="/demo/admin-memberships.html">💳 Membresías</a>
+          <a class="nav-item muted" href="#">📣 Anuncios</a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="topbar-left">
+          <button class="icon-btn" id="sidebarToggle" type="button" aria-label="Mostrar u ocultar menú">☰</button>
+          <div>
+            <div class="mini" style="font-weight:700;letter-spacing:.06em;text-transform:uppercase">CHIRIPAPP Admin</div>
+            <strong style="font-size:22px">Chiriperos</strong>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <a class="btn btn-ghost" href="/demo/admin-dashboard.html">Volver al dashboard</a>
+          <button class="btn btn-primary" type="button" onclick="loadRows()">Actualizar</button>
+        </div>
+      </div>
+
+      <section class="hero desktop-only">
+        <div class="hero-inner">
+        <div class="hero-summary desktop-only">
+          <article class="hero-stat"><div class="hero-stat-label">Total listados</div><div class="hero-stat-value" id="metricTotal">—</div><div class="hero-stat-sub">Perfiles cargados en la vista actual</div></article>
+          <article class="hero-stat"><div class="hero-stat-label">Pendientes</div><div class="hero-stat-value" id="metricPending">—</div><div class="hero-stat-sub">Esperando revisión</div></article>
+          <article class="hero-stat"><div class="hero-stat-label">Aprobados</div><div class="hero-stat-value" id="metricApproved">—</div><div class="hero-stat-sub">Con perfil aprobado</div></article>
+          <article class="hero-stat"><div class="hero-stat-label">Membresías activas</div><div class="hero-stat-value" id="metricMembershipActive">—</div><div class="hero-stat-sub">Con vigencia activa</div></article>
+          <article class="hero-stat"><div class="hero-stat-label">Vencen esta semana</div><div class="hero-stat-value" id="metricExpiringWeek">—</div><div class="hero-stat-sub">Para seguimiento de renovación</div></article>
+        </div>
+      </section>
+
+      <section class="grid-4 mobile-only" style="margin-top:0">
+        <article class="card"><div class="metric-label">Total listados</div><div class="metric-value" id="metricTotalMobile">—</div><div class="metric-sub">Perfiles cargados en la vista actual</div></article>
+        <article class="card"><div class="metric-label">Pendientes</div><div class="metric-value" id="metricPendingMobile">—</div><div class="metric-sub">Esperando revisión</div></article>
+        <article class="card"><div class="metric-label">Aprobados</div><div class="metric-value" id="metricApprovedMobile">—</div><div class="metric-sub">Con perfil aprobado</div></article>
+        <article class="card"><div class="metric-label">Membresías activas</div><div class="metric-value" id="metricMembershipActiveMobile">—</div><div class="metric-sub">Con vigencia activa</div></article>
+        <article class="card"><div class="metric-label">Vencen esta semana</div><div class="metric-value" id="metricExpiringWeekMobile">—</div><div class="metric-sub">Para seguimiento de renovación</div></article>
+      </section>
+
+      <section class="card" style="margin-top:12px">
+        <div class="mobile-sticky-tools">
+          <div class="filter-row">
+            <div class="tabs" id="tabs">
+              <button class="tab active" data-tab="all">Todos</button>
+              <button class="tab" data-tab="pending">Pendientes</button>
+              <button class="tab" data-tab="approved">Aprobados</button>
+              <button class="tab" data-tab="rejected">Rechazados</button>
+              <button class="tab" data-tab="active-membership">Membresía activa</button>
+            </div>
+            <div class="chips" id="quickChips">
+              <button class="chip" data-quick-filter="week">Vencen esta semana</button>
+              <button class="chip" data-quick-filter="month">Vencen este mes</button>
+              <button class="chip" data-quick-filter="expired">Vencidos</button>
+            </div>
+          </div>
+          <div class="toolbar">
+            <input id="searchInput" placeholder="Buscar por cualquier campo" />
+            <button class="btn btn-primary" type="button" onclick="loadRows()">Buscar</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card table-card desktop-only" id="desktopTableCard" style="margin-top:12px">
+        <div class="bulk-bar" id="bulkBar">
+          <div class="bulk-info" id="bulkInfo">0 seleccionados</div>
+          <div class="bulk-actions">
+            <button class="btn btn-success" type="button" onclick="bulkApply('approve')">Aprobar</button>
+            <button class="btn btn-danger" type="button" onclick="bulkApply('reject')">Rechazar</button>
+            <button class="btn btn-ghost" type="button" onclick="bulkApply('enable')">Habilitar</button>
+            <button class="btn btn-ghost" type="button" onclick="bulkApply('disable')">Inhabilitar</button>
+            <button class="btn btn-ghost" type="button" onclick="clearSelection()">Cancelar</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="checkbox-col"><input type="checkbox" id="selectAllRows" aria-label="Seleccionar todos" /></th>
+                <th>
+                  <div class="th-controls">
+                    <button class="th-btn" data-sort="display_name"><span class="th-label">Chiripero</span><span class="sort-indicator" data-sort-indicator="display_name">↕</span></button>
+                    <details class="th-filter-dropdown" id="filterNameDropdown"><summary title="Filtrar chiripero">▾</summary><div class="dd-list" id="filterNameList"></div></details>
+                  </div>
+                </th>
+                <th>
+                  <div class="th-controls">
+                    <button class="th-btn" data-sort="primary_service"><span class="th-label">Servicio</span><span class="sort-indicator" data-sort-indicator="primary_service">↕</span></button>
+                    <details class="th-filter-dropdown" id="filterServiceDropdown"><summary title="Filtrar servicio">▾</summary><div class="dd-list" id="filterServiceList"></div></details>
+                  </div>
+                </th>
+                <th>
+                  <div class="th-controls">
+                    <button class="th-btn" data-sort="rating_avg"><span class="th-label">Calif.</span><span class="sort-indicator" data-sort-indicator="rating_avg">↕</span></button>
+                    <details class="th-filter-dropdown" id="filterRatingDropdown"><summary title="Filtrar calificación">▾</summary><div class="dd-list" id="filterRatingList"></div></details>
+                  </div>
+                </th>
+                <th>
+                  <div class="th-controls">
+                    <button class="th-btn" data-sort="zones"><span class="th-label">Zonas</span><span class="sort-indicator" data-sort-indicator="zones">↕</span></button>
+                    <details class="th-filter-dropdown" id="filterZonesDropdown"><summary title="Filtrar zonas">▾</summary><div class="dd-list" id="filterZonesList"></div></details>
+                  </div>
+                </th>
+                <th>
+                  <div class="th-controls">
+                    <button class="th-btn" data-sort="status"><span class="th-label">Perfil</span><span class="sort-indicator" data-sort-indicator="status">↕</span></button>
+                    <details class="th-filter-dropdown" id="filterStatusDropdown"><summary title="Filtrar perfil">▾</summary><div class="dd-list" id="filterStatusList"></div></details>
+                  </div>
+                </th>
+                <th>
+                  <div class="th-controls">
+                    <button class="th-btn" data-sort="membership_status"><span class="th-label">Membresía</span><span class="sort-indicator" data-sort-indicator="membership_status">↕</span></button>
+                    <details class="th-filter-dropdown" id="filterMembershipDropdown"><summary title="Filtrar membresía">▾</summary><div class="dd-list" id="filterMembershipList"></div></details>
+                  </div>
+                </th>
+                <th>
+                  <div class="th-controls">
+                    <button class="th-btn" data-sort="membership_expires_at"><span class="th-label">Expiración</span><span class="sort-indicator" data-sort-indicator="membership_expires_at">↕</span></button>
+                    <details class="th-filter-dropdown" id="filterExpiresDropdown"><summary title="Filtrar expiración">▾</summary><div class="dd-list"><input class="dd-date-input" type="date" id="filterExpiresDate" aria-label="Filtrar por fecha de expiración" /></div></details>
+                  </div>
+                </th>
+                <th class="col-actions">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <tr><td colspan="9" class="empty">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card table-card mobile-only" style="margin-top:12px">
+        <div id="mobileList" class="mobile-list mobile-only"></div>
+      </section>
+    </main>
+  </div>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<script>
+  const state = {
+    activeTab:'all',
+    rows:[],
+    selected:new Set(),
+    sort:{ key:'display_name', dir:'asc' },
+    quickFilter:'none',
+    filters:{
+      name:[],
+      service:[],
+      rating:[],
+      zones:[],
+      status:[],
+      membership:[],
+      expires:''
+    }
+  };
+
+  const shell = document.getElementById('appShell');
+  const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+  const tableCard = document.getElementById('desktopTableCard');
+  const bulkBar = document.getElementById('bulkBar');
+  const bulkInfo = document.getElementById('bulkInfo');
+  const selectAllRows = document.getElementById('selectAllRows');
+
+  function syncSidebarMode(){ if (window.innerWidth > 900) shell.classList.remove('collapsed'); else shell.classList.add('collapsed'); }
+  function toggleSidebar(){ shell.classList.toggle('collapsed'); }
+  document.getElementById('sidebarToggle').addEventListener('click', toggleSidebar);
+  sidebarBackdrop?.addEventListener('click', () => shell.classList.add('collapsed'));
+  window.addEventListener('resize', syncSidebarMode);
+  syncSidebarMode();
+
+  function escapeHtml(v){ return String(v ?? '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s])); }
+  function formatDate(v){
+    try {
+      if (!v) return '—';
+      const d = new Date(v);
+      if (Number.isNaN(d.getTime())) return '—';
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const yy = String(d.getFullYear()).slice(-2);
+      return `${dd}/${mm}/${yy}`;
+    } catch { return '—'; }
+  }
+  function formatDateISO(v){
+    try {
+      if (!v) return '';
+      const d = new Date(v);
+      if (Number.isNaN(d.getTime())) return '';
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    } catch { return ''; }
+  }
+  function setText(id, value){ const el = document.getElementById(id); if (el) el.textContent = value; }
+  function normalize(v){ return String(v || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+
+  function badgeClass(value){
+    const v = String(value || '').toLowerCase();
+    if (['approved','active','visible'].includes(v)) return v;
+    if (['pending','in_review','review','por_vencer'].includes(v)) return v;
+    if (['rejected','inactive','expired','suspended'].includes(v)) return v;
+    return 'default';
+  }
+  function badge(value){ return `<span class="badge ${badgeClass(value)}">${escapeHtml(value || '—')}</span>`; }
+  function starsHtml(avg){
+    const value = Number(avg || 0);
+    const n = Math.round(value);
+    const max=5; let out='';
+    for(let i=1;i<=max;i++){ out += i<=n ? '<span title="★" style="color:#f59e0b">★</span>' : '<span style="color:#e6e7ea">☆</span>'; }
+    return `<span class="rating-score">${value.toFixed(1)}</span> <span class="rating-stars">${out}</span>`;
+  }
+  function zoneText(row){ return (row.zones || []).map(z => z.name).filter(Boolean).join(' · ') || 'Sin zonas'; }
+  function startOfDay(value){ const d = new Date(value); d.setHours(0,0,0,0); return d; }
+  function isActiveMembership(row){ return ['active','por_vencer'].includes(String(row.membership_status || '').toLowerCase()); }
+  function expiresWithinWeek(row){
+    if (!row.membership_expires_at || !isActiveMembership(row)) return false;
+    const today = startOfDay(new Date());
+    const weekLimit = new Date(today);
+    weekLimit.setDate(weekLimit.getDate() + 7);
+    const expires = startOfDay(row.membership_expires_at);
+    return !Number.isNaN(expires.getTime()) && expires >= today && expires <= weekLimit;
+  }
+  function expiresWithinMonth(row){
+    if (!row.membership_expires_at || !isActiveMembership(row)) return false;
+    const today = startOfDay(new Date());
+    const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    monthEnd.setHours(0,0,0,0);
+    const expires = startOfDay(row.membership_expires_at);
+    return !Number.isNaN(expires.getTime()) && expires >= today && expires <= monthEnd;
+  }
+  function isExpiredInactive(row){ return String(row.membership_status || '').toLowerCase() === 'inactive'; }
+  function rowSearchText(row){
+    return normalize([
+      row.display_name,
+      row.primary_service,
+      zoneText(row),
+      row.status,
+      row.membership_status,
+      formatDate(row.membership_expires_at),
+      formatDateISO(row.membership_expires_at),
+      Number(row.rating_avg || 0).toFixed(1)
+    ].join(' | '));
+  }
+
+  function renderMetrics(rows){
+    const total = rows.length;
+    const pending = rows.filter(r => r.status === 'pending').length;
+    const approved = rows.filter(r => r.status === 'approved').length;
+    const membershipActive = rows.filter(r => r.membership_status === 'active').length;
+    const expiringWeek = rows.filter(expiresWithinWeek).length;
+    setText('metricTotal', total); setText('metricPending', pending); setText('metricApproved', approved); setText('metricMembershipActive', membershipActive); setText('metricExpiringWeek', expiringWeek);
+    setText('metricTotalMobile', total); setText('metricPendingMobile', pending); setText('metricApprovedMobile', approved); setText('metricMembershipActiveMobile', membershipActive); setText('metricExpiringWeekMobile', expiringWeek);
+  }
+
+  function applyTab(rows){
+    if (state.activeTab === 'pending') return rows.filter(r => r.status === 'pending');
+    if (state.activeTab === 'approved') return rows.filter(r => r.status === 'approved');
+    if (state.activeTab === 'rejected') return rows.filter(r => r.status === 'rejected');
+    if (state.activeTab === 'active-membership') return rows.filter(r => r.membership_status === 'active');
+    return rows;
+  }
+
+  function getHeaderFilters(){
+    return state.filters;
+  }
+
+  function getUniqueOptions(values){
+    return [...new Set(values.map(v => String(v || '').trim()).filter(Boolean))].sort((a,b) => a.localeCompare(b, 'es', { sensitivity:'base' }));
+  }
+
+  function renderFilterList(containerId, filterKey, options, formatter){
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const selected = new Set(state.filters[filterKey] || []);
+    if (!options.length) {
+      container.innerHTML = '<div class="dd-empty">Sin valores disponibles</div>';
+      return;
+    }
+    container.innerHTML = options.map(option => {
+      const value = String(option);
+      const checked = selected.has(value) ? 'checked' : '';
+      const label = formatter ? formatter(value) : escapeHtml(value);
+      return `<label class="dd-option"><input type="checkbox" data-filter-key="${filterKey}" value="${escapeHtml(value)}" ${checked} /><span>${label}</span></label>`;
+    }).join('');
+  }
+
+  function renderFilterOptions(){
+    renderFilterList('filterNameList', 'name', getUniqueOptions(state.rows.map(row => row.display_name)));
+    renderFilterList('filterServiceList', 'service', getUniqueOptions(state.rows.map(row => row.primary_service)));
+    renderFilterList('filterRatingList', 'rating', ['5','4','3','2','1'], value => `${'★'.repeat(Number(value))} o más`);
+    renderFilterList('filterZonesList', 'zones', getUniqueOptions(state.rows.flatMap(row => (row.zones || []).map(zone => zone?.name))));
+    renderFilterList('filterStatusList', 'status', getUniqueOptions(state.rows.map(row => row.status)), value => escapeHtml(value || '—'));
+    renderFilterList('filterMembershipList', 'membership', getUniqueOptions(state.rows.map(row => row.membership_status)), value => escapeHtml(value || '—'));
+    const expiresInput = document.getElementById('filterExpiresDate');
+    if (expiresInput) expiresInput.value = state.filters.expires || '';
+  }
+
+  function applyHeaderFilters(rows){
+    const f = getHeaderFilters();
+    return rows.filter(row => {
+      // name/service/zones: arrays of selected values (OR logic)
+      if (f.name && f.name.length && !f.name.some(v => normalize(row.display_name).includes(normalize(v)))) return false;
+      if (f.service && f.service.length && !f.service.some(v => normalize(row.primary_service).includes(normalize(v)))) return false;
+      if (f.rating && f.rating.length && !f.rating.some(v => Number(row.rating_avg || 0) >= Number(v))) return false;
+      if (f.zones && f.zones.length && !f.zones.some(v => normalize(zoneText(row)).includes(normalize(v)))) return false;
+      if (f.status && f.status.length && !f.status.includes(row.status)) return false;
+      if (f.membership && f.membership.length && !f.membership.includes(row.membership_status)) return false;
+      if (f.expires) {
+        const rowDate = formatDateISO(row.membership_expires_at);
+        if (!rowDate || rowDate > f.expires) return false;
+      }
+      return true;
+    });
+  }
+
+  function applySearch(rows){
+    const query = normalize(document.getElementById('searchInput')?.value.trim() || '');
+    if (!query) return rows;
+    return rows.filter(row => rowSearchText(row).includes(query));
+  }
+
+  function applyQuickFilter(rows){
+    if (state.quickFilter === 'week') return rows.filter(expiresWithinWeek);
+    if (state.quickFilter === 'month') return rows.filter(expiresWithinMonth);
+    if (state.quickFilter === 'expired') return rows.filter(isExpiredInactive);
+    return rows;
+  }
+
+  function sortRows(rows){
+    const { key, dir } = state.sort;
+    const factor = dir === 'asc' ? 1 : -1;
+    return [...rows].sort((a,b) => {
+      let av = a[key], bv = b[key];
+      if (key === 'zones') { av = zoneText(a); bv = zoneText(b); }
+      if (key === 'rating_avg') { av = Number(a.rating_avg || 0); bv = Number(b.rating_avg || 0); }
+      if (key === 'membership_expires_at') { av = av ? new Date(av).getTime() : 0; bv = bv ? new Date(bv).getTime() : 0; }
+      if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * factor;
+      return String(av || '').localeCompare(String(bv || ''), 'es', { sensitivity:'base' }) * factor;
+    });
+  }
+
+  function getVisibleRows(){
+    return sortRows(applyQuickFilter(applySearch(applyHeaderFilters(applyTab(state.rows)))));
+  }
+
+  function updateSortIndicators(){
+    document.querySelectorAll('[data-sort-indicator]').forEach(el => {
+      const key = el.getAttribute('data-sort-indicator');
+      el.textContent = state.sort.key === key ? (state.sort.dir === 'asc' ? '↑' : '↓') : '↕';
+    });
+  }
+
+  function updateSelectionUI(visibleRows){
+    const count = state.selected.size;
+    bulkBar?.classList.toggle('active', count > 0);
+    tableCard?.classList.toggle('selection-mode', count > 0);
+    if (bulkInfo) bulkInfo.textContent = `${count} seleccionados`;
+    if (selectAllRows) {
+      const visibleIds = visibleRows.map(r => r.id);
+      const selectedVisible = visibleIds.filter(id => state.selected.has(id)).length;
+      selectAllRows.checked = !!visibleIds.length && selectedVisible === visibleIds.length;
+      selectAllRows.indeterminate = selectedVisible > 0 && selectedVisible < visibleIds.length;
+    }
+  }
+
+  function clearSelection(){
+    state.selected.clear();
+    renderView();
+  }
+
+  function toggleSelected(id, checked){
+    if (checked) state.selected.add(id);
+    else state.selected.delete(id);
+    renderView();
+  }
+
+  function bulkApply(action){
+    if (!state.selected.size) return;
+    state.rows = state.rows.map(row => {
+      if (!state.selected.has(row.id)) return row;
+      if (action === 'approve') return { ...row, status:'approved' };
+      if (action === 'reject') return { ...row, status:'rejected' };
+      if (action === 'enable') return { ...row, membership_status:'active' };
+      if (action === 'disable') return { ...row, membership_status:'inactive' };
+      return row;
+    });
+    renderFilterOptions();
+    clearSelection();
+  }
+
+  function renderDesktopRows(rows){
+    const tbody = document.getElementById('tableBody');
+    const colspan = state.selected.size ? 8 : 9;
+    if (!rows.length) {
+      tbody.innerHTML = `<tr><td colspan="${colspan}" class="empty">No encontré chiriperos con esos filtros.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = rows.map(row => `
+      <tr>
+        <td class="checkbox-col"><input type="checkbox" ${state.selected.has(row.id) ? 'checked' : ''} onchange="toggleSelected('${row.id}', this.checked)" aria-label="Seleccionar ${escapeHtml(row.display_name || 'chiripero')}" /></td>
+        <td><div class="name-compact">${escapeHtml(row.display_name || 'Sin nombre')}</div></td>
+        <td><div class="service-compact">${escapeHtml(row.primary_service || 'Servicio general')}</div></td>
+        <td class="rating-cell">${starsHtml(row.rating_avg)}</td>
+        <td><div class="zones-inline">${escapeHtml(zoneText(row))}</div></td>
+        <td class="status-cell">${badge(row.status)}</td>
+        <td class="member-cell">${badge(row.membership_status)}</td>
+        <td class="expires-cell">${escapeHtml(formatDate(row.membership_expires_at))}</td>
+        <td data-col="actions">
+          <div class="actions">
+            <a class="action-link" href="/demo/admin-chiripero-detail.html?id=${encodeURIComponent(row.id)}">Ver detalle</a>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function renderMobileRows(rows){
+    const mobileList = document.getElementById('mobileList');
+    if (!mobileList) return;
+    if (!rows.length) {
+      mobileList.innerHTML = '<div class="empty">No encontré chiriperos con esos filtros.</div>';
+      return;
+    }
+    mobileList.innerHTML = `<div class="mobile-stack">${rows.map(row => `
+      <article class="mobile-item">
+        <div class="mobile-row">
+          <div class="mobile-main">
+            <div class="mobile-topline"><strong>${escapeHtml(row.display_name || 'Sin nombre')}</strong></div>
+            <div class="mobile-service-line">${escapeHtml(row.primary_service || 'Servicio general')}</div>
+            <div class="mobile-subline">${escapeHtml(zoneText(row))}</div>
+            <div class="mobile-badges">
+              ${badge(row.status)}
+              ${badge(row.membership_status)}
+              ${starsHtml(row.rating_avg)}
+            </div>
+          </div>
+          <div class="mobile-right">
+            <span class="mobile-docs">${escapeHtml(formatDate(row.membership_expires_at))}</span>
+          </div>
+        </div>
+        <div class="mobile-actions">
+          <a class="action-link" href="/demo/admin-chiripero-detail.html?id=${encodeURIComponent(row.id)}">Ver detalle</a>
+        </div>
+      </article>
+    `).join('')}</div>`;
+  }
+
+  function updateTabUI(){
+    document.querySelectorAll('.tab').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === state.activeTab));
+    document.querySelectorAll('.chip').forEach(btn => btn.classList.toggle('active', btn.dataset.quickFilter === state.quickFilter));
+  }
+
+  function resetAllFilters(){
+    state.activeTab = 'all';
+    state.quickFilter = 'none';
+    state.filters = { name:[], service:[], rating:[], zones:[], status:[], membership:[], expires:'' };
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) searchInput.value = '';
+    renderFilterOptions();
+    document.querySelectorAll('.th-filter-dropdown').forEach(dropdown => { dropdown.open = false; });
+    updateTabUI();
+    renderView();
+  }
+
+  function renderView(){
+    const visibleRows = getVisibleRows();
+    renderMetrics(visibleRows);
+    renderDesktopRows(visibleRows);
+    renderMobileRows(visibleRows);
+    updateSortIndicators();
+    updateSelectionUI(visibleRows);
+    updateTabUI();
+  }
+
+  async function loadRows(){
+    try {
+      const rows = await fetch('/admin/chiriperos').then(r => r.json());
+      state.rows = Array.isArray(rows) ? rows : [];
+      state.selected.clear();
+      renderFilterOptions();
+      renderView();
+    } catch (e) {
+      document.getElementById('tableBody').innerHTML = `<tr><td colspan="9" class="empty">No pude cargar el listado: ${escapeHtml(e.message || 'error')}</td></tr>`;
+      const mobileList = document.getElementById('mobileList');
+      if (mobileList) mobileList.innerHTML = `<div class="empty">No pude cargar el listado: ${escapeHtml(e.message || 'error')}</div>`;
+    }
+  }
+
+  document.getElementById('tabs').addEventListener('click', (ev) => {
+    const btn = ev.target.closest('[data-tab]');
+    if (!btn) return;
+    const tab = btn.dataset.tab;
+    if (tab === 'all') return resetAllFilters();
+    state.activeTab = state.activeTab === tab ? 'all' : tab;
+    renderView();
+  });
+
+  document.getElementById('quickChips')?.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('[data-quick-filter]');
+    if (!btn) return;
+    const filter = btn.dataset.quickFilter;
+    state.quickFilter = state.quickFilter === filter ? 'none' : filter;
+    renderView();
+  });
+
+  document.querySelectorAll('[data-sort]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.getAttribute('data-sort');
+      if (state.sort.key === key) state.sort.dir = state.sort.dir === 'asc' ? 'desc' : 'asc';
+      else state.sort = { key, dir:'asc' };
+      renderView();
+    });
+  });
+
+  document.querySelector('thead')?.addEventListener('change', (event) => {
+    const input = event.target.closest('input[type="checkbox"][data-filter-key]');
+    if (!input) return;
+    const key = input.dataset.filterKey;
+    const values = new Set(state.filters[key] || []);
+    if (input.checked) values.add(input.value);
+    else values.delete(input.value);
+    state.filters[key] = [...values];
+    renderView();
+  });
+
+  document.getElementById('filterExpiresDate')?.addEventListener('change', (event) => {
+    state.filters.expires = event.target.value || '';
+    renderView();
+  });
+
+  document.querySelectorAll('.th-filter-dropdown').forEach(dropdown => {
+    dropdown.addEventListener('toggle', () => {
+      if (!dropdown.open) return;
+      document.querySelectorAll('.th-filter-dropdown').forEach(other => {
+        if (other !== dropdown) other.open = false;
+      });
+    });
+  });
+
+  document.addEventListener('click', (event) => {
+    if (event.target.closest('.th-filter-dropdown')) return;
+    document.querySelectorAll('.th-filter-dropdown').forEach(dropdown => { dropdown.open = false; });
+  });
+
+  selectAllRows?.addEventListener('change', () => {
+    const visibleIds = getVisibleRows().map(r => r.id);
+    if (selectAllRows.checked) visibleIds.forEach(id => state.selected.add(id));
+    else visibleIds.forEach(id => state.selected.delete(id));
+    renderView();
+  });
+
+  document.getElementById('searchInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') loadRows(); });
+  document.getElementById('searchInput').addEventListener('input', renderView);
+
+  loadRows();
+</script>
+</body>
+</html>

@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Membresías Admin | CHIRIPAPP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#f4f9fd;--card:#fff;--text:#0f172a;--muted:#475569;--brand:#1ea4de;--brand2:#177fbf;--line:#dbe8f2;--ok:#16a34a;--warn:#b45309;--danger:#dc2626}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial;overflow-x:hidden}
+    .shell{display:grid;grid-template-columns:280px 1fr;min-height:100vh;transition:grid-template-columns .2s ease}.shell.collapsed{grid-template-columns:0 1fr}
+    .sidebar-backdrop{display:none}
+    .sidebar{background:#fff;color:#0f172a;padding:22px 18px;position:sticky;top:0;height:100vh;overflow:auto;transition:transform .22s ease,opacity .22s ease;border-right:1px solid var(--line);box-shadow:0 10px 30px rgba(15,23,42,.05)}.shell.collapsed .sidebar{transform:translateX(-100%);opacity:0;pointer-events:none}
+    .brand{display:flex;flex-direction:column;gap:10px;padding-bottom:18px;border-bottom:1px solid var(--line)}.brand img{width:180px;max-width:100%;object-fit:contain}.brand small{color:#64748b;line-height:1.45}
+    .nav-group{margin-top:20px}.nav-title{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8;margin:0 0 10px 10px}.nav-list{display:flex;flex-direction:column;gap:6px}.nav-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:14px;color:#334155;text-decoration:none;font-size:14px;font-weight:600}.nav-item.active{background:linear-gradient(135deg,#e0f2fe,#dbeafe);color:#075985;border:1px solid #bae6fd}
+    .main{padding:22px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}.topbar-left{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .icon-btn,.btn{border:none;border-radius:14px;padding:11px 14px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}.icon-btn{width:46px;height:46px;padding:0;background:#fff;border:1px solid var(--line);font-size:18px}.btn-primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff}.btn-ghost{background:#fff;color:var(--text);border:1px solid var(--line)}.btn-danger{background:#dc2626;color:#fff}
+    .hero{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-radius:24px;padding:24px;margin-bottom:16px;box-shadow:0 18px 40px rgba(23,127,191,.24)}.hero h1{margin:0 0 8px;font-size:31px;line-height:1.04}.hero p{margin:0;opacity:.95;max-width:840px}.hero-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.hero-pill{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.26);border-radius:999px;padding:8px 12px;font-size:12px;font-weight:600}
+    .grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:14px}.grid-main{display:grid;grid-template-columns:1.15fr .85fr;gap:12px;margin-top:12px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 2px 8px rgba(15,23,42,.05)}.metric-label{font-size:12px;color:#64748b;margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}.metric-value{font-size:30px;font-weight:800;line-height:1}.metric-sub{margin-top:8px;font-size:13px;color:#475569}.section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.section-title h2{margin:0;font-size:18px}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.tab{border:1px solid var(--line);background:#fff;padding:9px 12px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;color:#334155}.tab.active{background:#0f172a;color:#fff;border-color:#0f172a}
+    .toolbar{display:grid;grid-template-columns:1fr .8fr .8fr auto;gap:10px;margin-bottom:12px}.toolbar input,.toolbar select,.toolbar textarea{width:100%;padding:12px;border:1px solid var(--line);border-radius:14px;background:#fff;font-size:14px}
+    .table-card{overflow:hidden;padding:0}.table-wrap{overflow:visible}table{width:100%;border-collapse:collapse;table-layout:fixed}thead th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#64748b;background:#f8fbfe;padding:12px 10px;border-bottom:1px solid var(--line);text-align:left}tbody td{padding:12px 10px;border-bottom:1px solid #edf2f7;vertical-align:top;word-wrap:break-word}tbody tr:hover{background:#fbfdff}
+    .mobile-list{display:none}.mobile-item{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 2px 8px rgba(15,23,42,.05)}.mobile-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:10px}.mobile-stack{display:flex;flex-direction:column;gap:12px}.mobile-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.mobile-actions .action-link{flex:1;text-align:center;justify-content:center}.mobile-only{display:none}.desktop-only{display:block}
+    .name-block{display:flex;flex-direction:column;gap:4px}.name-block strong{font-size:13px}.mini{font-size:11px;color:#64748b;line-height:1.35}
+    th:nth-child(1),td:nth-child(1){width:25%} th:nth-child(2),td:nth-child(2){width:12%} th:nth-child(3),td:nth-child(3){width:14%} th:nth-child(4),td:nth-child(4){width:16%} th:nth-child(5),td:nth-child(5){width:15%} th:nth-child(6),td:nth-child(6){width:18%}
+    .proof-thumb{width:100%;max-width:150px;height:88px;object-fit:cover;border-radius:12px;border:1px solid var(--line);background:#eef6fb;display:block}
+    .proof-thumb-wrap{display:flex;flex-direction:column;gap:8px}
+    .proof-inline{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .proof-mini{width:64px;height:44px;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:#eef6fb;display:block}
+    .table-actions{display:flex;gap:6px;flex-wrap:wrap}
+    .table-actions .action-link{padding:7px 9px;font-size:11px}
+    .badge{font-size:11px;padding:5px 8px}
+    .value img{max-width:100%}
+    .badge{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:800;text-transform:capitalize;white-space:nowrap}.badge.active,.badge.approved{background:#dcfce7;color:#166534}.badge.pending,.badge.review{background:#fef3c7;color:#92400e}.badge.rejected,.badge.inactive,.badge.expired{background:#fee2e2;color:#b91c1c}.badge.default{background:#e2e8f0;color:#334155}
+    .action-link{padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--text);text-decoration:none;font-size:12px;font-weight:700;cursor:pointer}
+    .drawer-placeholder{display:flex;flex-direction:column;gap:12px}.info-block{border:1px solid #edf2f7;border-radius:14px;padding:14px;background:#fbfdff}.label{font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:.04em;font-weight:700;margin-bottom:5px}.value{font-size:14px;color:#0f172a;line-height:1.55}.actions{display:flex;gap:10px;flex-wrap:wrap}.empty{padding:22px;text-align:center;color:#64748b}
+    @media (max-width:1100px){.grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-main{grid-template-columns:1fr}.toolbar{grid-template-columns:1fr 1fr} table{table-layout:auto}}
+    @media (max-width:900px){.shell,.shell.collapsed{grid-template-columns:1fr}.sidebar{position:fixed;left:0;width:280px;z-index:30}.shell.collapsed .sidebar{transform:translateX(-100%)}.sidebar-backdrop{display:block;position:fixed;inset:0;background:rgba(15,23,42,.38);z-index:25;opacity:1;transition:opacity .2s ease}.shell.collapsed + .sidebar-backdrop{opacity:0;pointer-events:none}.main{padding:14px;min-width:0;width:100%}}
+    @media (max-width:700px){.main{padding:12px}.grid-4{grid-template-columns:1fr 1fr;gap:10px}.toolbar{grid-template-columns:1fr}.hero h1{font-size:24px;line-height:1.12}.hero{padding:18px;border-radius:18px;margin-bottom:12px}.topbar{align-items:stretch;margin-bottom:14px}.topbar > div:last-child{width:100%}.topbar > div:last-child .btn{flex:1}.tabs{overflow:auto;flex-wrap:nowrap;padding-bottom:4px}.tab{white-space:nowrap}.desktop-only{display:none}.mobile-only{display:block}.table-card{padding:12px}.card{border-radius:16px;padding:14px}.actions{flex-direction:column}.actions .btn,.actions .action-link{width:100%}.proof-thumb{max-width:100%;height:auto}.sidebar{width:88vw;max-width:320px}.icon-btn{width:42px;height:42px}}
+  </style>
+</head>
+<body>
+  <div class="shell collapsed" id="appShell">
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="/demo/assets/logo_horizontal_trans.png" alt="CHIRIPAPP" />
+        <small>Control operativo de pagos, vigencias y decisiones de membresía.</small>
+      </div>
+      <div class="nav-group">
+        <p class="nav-title">Principal</p>
+        <div class="nav-list">
+          <a class="nav-item" href="/demo/admin-dashboard.html">📊 Dashboard</a>
+        </div>
+      </div>
+      <div class="nav-group">
+        <p class="nav-title">Operaciones</p>
+        <div class="nav-list">
+          <a class="nav-item" href="/demo/admin-chiriperos.html">👷 Chiriperos</a>
+          <a class="nav-item" href="/demo/admin-review.html">🛡️ Revisiones</a>
+          <a class="nav-item active" href="/demo/admin-memberships.html">💳 Membresías</a>
+          <a class="nav-item muted" href="#">📣 Anuncios</a>
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <p class="nav-title">Resumen</p>
+        <div class="card" style="background:#f8fbfe;border-color:var(--line);box-shadow:none;color:#334155">
+          Revisión rápida de pagos, vigencias y decisiones de aprobación.
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="topbar-left">
+          <button class="icon-btn" id="sidebarToggle" type="button" aria-label="Mostrar u ocultar menú">☰</button>
+          <div>
+            <div class="mini" style="font-weight:700;letter-spacing:.06em;text-transform:uppercase">CHIRIPAPP Admin</div>
+            <strong style="font-size:22px">Membresías</strong>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <a class="btn btn-ghost" href="/demo/admin-dashboard.html">Volver al dashboard</a>
+          <button class="btn btn-primary" type="button" onclick="loadRows()">Actualizar</button>
+        </div>
+      </div>
+
+      <section class="hero">
+        <h1>Aquí se decide quién entra, quién renueva y qué pago está frenando el funnel</h1>
+        <p>Este módulo prioriza revisión rápida de pagos pendientes, vigencias activas y una vista lateral para decidir sin enredarse.</p>
+        <div class="hero-meta">
+          <span class="hero-pill" id="heroStatus">Cargando membresías...</span>
+          <span class="hero-pill">Pendientes + activas</span>
+          <span class="hero-pill">Decisión rápida</span>
+        </div>
+      </section>
+
+      <section class="grid-4">
+        <article class="card"><div class="metric-label">Pendientes</div><div class="metric-value" id="metricPending">—</div><div class="metric-sub">Pagos por revisar</div></article>
+        <article class="card"><div class="metric-label">Activas</div><div class="metric-value" id="metricActive">—</div><div class="metric-sub">Con vigencia actual</div></article>
+        <article class="card"><div class="metric-label">Inactivas</div><div class="metric-value" id="metricInactive">—</div><div class="metric-sub">Sin membresía activa</div></article>
+        <article class="card"><div class="metric-label">Por vencer</div><div class="metric-value" id="metricExpiring">—</div><div class="metric-sub">Próximos 7 días</div></article>
+      </section>
+
+      <section class="card" style="margin-top:12px">
+        <div class="tabs" id="tabs">
+          <button class="tab active" data-tab="pending">Pendientes</button>
+          <button class="tab" data-tab="active">Activas</button>
+          <button class="tab" data-tab="inactive">Inactivas</button>
+          <button class="tab" data-tab="all">Todas</button>
+        </div>
+        <div class="toolbar">
+          <input id="searchInput" placeholder="Buscar por nombre o teléfono" />
+          <select id="membershipFilter">
+            <option value="">Estado (todos)</option>
+            <option value="pending">Pendiente</option>
+            <option value="active">Activa</option>
+            <option value="inactive">Inactiva</option>
+          </select>
+          <select id="profileFilter">
+            <option value="">Perfil (todos)</option>
+            <option value="pending">Pendiente</option>
+            <option value="approved">Aprobado</option>
+            <option value="rejected">Rechazado</option>
+          </select>
+          <button class="btn btn-primary" type="button" onclick="loadRows()">Buscar</button>
+        </div>
+      </section>
+
+      <section class="grid-main">
+        <article class="card table-card">
+          <div class="table-wrap desktop-only">
+            <table>
+              <thead>
+                <tr>
+                  <th>Chiripero</th>
+                  <th>Perfil</th>
+                  <th>Membresía</th>
+                  <th>Expiración</th>
+                  <th>Comprobante</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody">
+                <tr><td colspan="6" class="empty">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div id="mobileMembershipList" class="mobile-list mobile-only"></div>
+        </article>
+
+        <article class="card">
+          <div class="section-title"><h2>Panel de decisión</h2><small class="muted">Selecciona una fila</small></div>
+          <div id="detailPanel" class="drawer-placeholder">
+            <div class="empty">Selecciona una membresía para ver el detalle aquí.</div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<script>
+  const shell = document.getElementById('appShell');
+  const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+  function syncSidebarMode(){ if (window.innerWidth > 900) shell.classList.remove('collapsed'); else shell.classList.add('collapsed'); }
+  document.getElementById('sidebarToggle')?.addEventListener('click', () => shell.classList.toggle('collapsed'));
+  sidebarBackdrop?.addEventListener('click', () => shell.classList.add('collapsed'));
+  window.addEventListener('resize', syncSidebarMode);
+  syncSidebarMode();
+  const state = { rows: [], activeTab: 'pending', selectedId: null };
+
+  function escapeHtml(v){ return String(v ?? '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s])); }
+  function formatDate(v){ try { return new Date(v).toLocaleString('es-DO', { dateStyle:'medium', timeStyle:'short' }); } catch { return '—'; } }
+  function setText(id, value){ const el=document.getElementById(id); if(el) el.textContent=value; }
+  function badgeClass(value){ const v=String(value||'').toLowerCase(); if(['active','approved'].includes(v)) return v; if(['pending','review'].includes(v)) return v; if(['inactive','rejected','expired'].includes(v)) return v; return 'default'; }
+  function badge(value){ return `<span class="badge ${badgeClass(value)}">${escapeHtml(value || '—')}</span>`; }
+
+  async function fetchRows(){
+    const q = document.getElementById('searchInput').value.trim();
+    const membership = document.getElementById('membershipFilter').value;
+    const profile = document.getElementById('profileFilter').value;
+    const params = new URLSearchParams();
+    if (q) params.set('q', q);
+    if (membership) params.set('membership_status', membership);
+    if (profile) params.set('status', profile);
+    const rows = await fetch('/admin/chiriperos?' + params.toString()).then(r => r.json());
+    return Array.isArray(rows) ? rows : [];
+  }
+
+  function daysUntil(dateStr){
+    if (!dateStr) return null;
+    const ms = new Date(dateStr) - new Date();
+    return Math.ceil(ms / 86400000);
+  }
+
+  function applyTab(rows){
+    if (state.activeTab === 'pending') return rows.filter(r => r.membership_status === 'pending');
+    if (state.activeTab === 'active') return rows.filter(r => r.membership_status === 'active');
+    if (state.activeTab === 'inactive') return rows.filter(r => r.membership_status === 'inactive');
+    return rows;
+  }
+
+  function renderMetrics(rows){
+    setText('metricPending', rows.filter(r => r.membership_status === 'pending').length);
+    setText('metricActive', rows.filter(r => r.membership_status === 'active').length);
+    setText('metricInactive', rows.filter(r => r.membership_status === 'inactive').length);
+    setText('metricExpiring', rows.filter(r => r.membership_status === 'active' && daysUntil(r.membership_expires_at) !== null && daysUntil(r.membership_expires_at) <= 7).length);
+  }
+
+  async function loadDetail(id){
+    state.selectedId = id;
+    const wrap = document.getElementById('detailPanel');
+    wrap.innerHTML = '<div class="empty">Cargando detalle...</div>';
+    try {
+      const data = await fetch('/admin/chiriperos/' + encodeURIComponent(id)).then(r => r.json());
+      let proof = (data.documents || []).find(d => d.doc_type === 'membership_payment_proof') || (data.documents || []).slice(0,1)[0];
+      if ((!proof || !proof.file_url || String(proof.file_url).startsWith('upload://')) && data.id === 'a3fc2957-8ce5-4d4a-9ca5-d8d83c009475') {
+        proof = { file_url: '/demo/assets/Comprobante_pago.jpg', doc_type: 'membership_payment_proof', review_status: 'pending', uploaded_at: data.updated_at };
+      }
+      wrap.innerHTML = `
+        <div class="info-block">
+          <div class="label">Chiripero</div>
+          <div class="value"><strong>${escapeHtml(data.display_name || 'Sin nombre')}</strong><br>${escapeHtml(data.whatsapp_number || 'Sin WhatsApp')}</div>
+        </div>
+        <div class="info-block">
+          <div class="label">Estados</div>
+          <div class="value">${badge(data.status)} ${badge(data.membership_status)} ${badge(data.documents_status)}</div>
+        </div>
+        <div class="info-block">
+          <div class="label">Expiración actual</div>
+          <div class="value">${escapeHtml(data.membership_expires_at ? formatDate(data.membership_expires_at) : 'Sin fecha definida')}</div>
+        </div>
+        <div class="info-block">
+          <div class="label">Comprobante</div>
+          <div class="value">${proof ? `<div class="proof-thumb-wrap"><img class="proof-thumb" src="${escapeHtml(proof.file_url)}" alt="Comprobante" /><div class="proof-inline"><span class="mini">${escapeHtml(proof.doc_type || 'comprobante')}</span><a class="action-link" href="${escapeHtml(proof.file_url)}" target="_blank" rel="noopener">Abrir completo</a></div></div>` : 'No hay archivo visible'}</div>
+        </div>
+        <div class="info-block">
+          <div class="label">Nota de decisión</div>
+          <textarea id="decisionNote" rows="4" placeholder="Escribe una nota corta para aprobar o rechazar..."></textarea>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" type="button" onclick="decideSelected('approved')">Aprobar</button>
+          <button class="btn btn-danger" type="button" onclick="decideSelected('rejected')">Rechazar</button>
+          <a class="action-link" href="/demo/admin-chiripero-detail.html?id=${encodeURIComponent(id)}">Ver perfil completo</a>
+        </div>
+      `;
+    } catch (e) {
+      wrap.innerHTML = `<div class="empty">No pude cargar el detalle: ${escapeHtml(e.message || 'error')}</div>`;
+    }
+  }
+
+  async function decideSelected(decision){
+    if (!state.selectedId) return;
+    const note = document.getElementById('decisionNote')?.value?.trim() || '';
+    const r = await fetch('/admin/memberships/' + encodeURIComponent(state.selectedId) + '/decision', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ decision, note })
+    });
+    if (!r.ok) {
+      alert('No se pudo procesar la decisión');
+      return;
+    }
+    await loadRows();
+    await loadDetail(state.selectedId);
+  }
+
+  function renderRows(rows){
+    const tbody = document.getElementById('tableBody');
+    const mobileList = document.getElementById('mobileMembershipList');
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty">No encontré membresías con esos filtros.</td></tr>';
+      if (mobileList) mobileList.innerHTML = '<div class="empty">No encontré membresías con esos filtros.</div>';
+      document.getElementById('detailPanel').innerHTML = '<div class="empty">No hay nada seleccionado.</div>';
+      return;
+    }
+    tbody.innerHTML = rows.map(row => `
+      <tr>
+        <td>
+          <div class="name-block">
+            <strong>${escapeHtml(row.display_name || 'Sin nombre')}</strong>
+            <span class="mini">${escapeHtml(row.whatsapp_number || 'Sin WhatsApp')}</span>
+            <span class="mini">${escapeHtml(row.primary_service || 'Servicio general')}</span>
+          </div>
+        </td>
+        <td>${badge(row.status)}</td>
+        <td>${badge(row.membership_status)}</td>
+        <td><span class="mini">${escapeHtml(row.membership_expires_at ? formatDate(row.membership_expires_at) : 'Sin fecha')}</span></td>
+        <td><div class="proof-inline">${row.id === 'a3fc2957-8ce5-4d4a-9ca5-d8d83c009475' ? `<img class="proof-mini" src="/demo/assets/Comprobante_pago.jpg" alt="Comprobante" />` : ''}<span class="mini">${row.documents_count || 0} archivo(s)</span></div></td>
+        <td><div class="table-actions"><button class="action-link" onclick="loadDetail('${row.id}')">Ver / decidir</button><a class="action-link" href="/demo/admin-chiripero-detail.html?id=${encodeURIComponent(row.id)}">Perfil</a></div></td>
+      </tr>
+    `).join('');
+
+    if (mobileList) {
+      mobileList.innerHTML = `<div class="mobile-stack">${rows.map(row => `
+        <article class="mobile-item">
+          <div class="mobile-head">
+            <div class="name-block">
+              <strong>${escapeHtml(row.display_name || 'Sin nombre')}</strong>
+              <span class="mini">${escapeHtml(row.whatsapp_number || 'Sin WhatsApp')}</span>
+            </div>
+            ${badge(row.membership_status)}
+          </div>
+          <div class="mini">Perfil: ${escapeHtml(row.status || '—')}</div>
+          <div class="mini">Expiración: ${escapeHtml(row.membership_expires_at ? formatDate(row.membership_expires_at) : 'Sin fecha')}</div>
+          <div class="proof-inline" style="margin-top:10px">${row.id === 'a3fc2957-8ce5-4d4a-9ca5-d8d83c009475' ? `<img class="proof-mini" src="/demo/assets/Comprobante_pago.jpg" alt="Comprobante" />` : ''}<span class="mini">${row.documents_count || 0} archivo(s)</span></div>
+          <div class="mobile-actions">
+            <button class="action-link" onclick="loadDetail('${row.id}')">Ver / decidir</button>
+            <a class="action-link" href="/demo/admin-chiripero-detail.html?id=${encodeURIComponent(row.id)}">Perfil</a>
+          </div>
+        </article>
+      `).join('')}</div>`;
+    }
+
+    const selectedStillExists = rows.some(r => r.id === state.selectedId);
+    const firstId = selectedStillExists ? state.selectedId : rows[0].id;
+    loadDetail(firstId);
+  }
+
+  async function loadRows(){
+    setText('heroStatus', 'Actualizando módulo...');
+    try {
+      state.rows = await fetchRows();
+      const rows = applyTab(state.rows);
+      renderMetrics(state.rows);
+      renderRows(rows);
+      setText('heroStatus', `Cargadas ${rows.length} membresía(s) en esta vista`);
+    } catch (e) {
+      document.getElementById('tableBody').innerHTML = `<tr><td colspan="6" class="empty">Error cargando módulo: ${escapeHtml(e.message || 'error')}</td></tr>`;
+      setText('heroStatus', 'Error cargando módulo');
+    }
+  }
+
+  document.getElementById('tabs').addEventListener('click', (ev) => {
+    const btn = ev.target.closest('[data-tab]');
+    if (!btn) return;
+    state.activeTab = btn.dataset.tab;
+    document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x === btn));
+    renderRows(applyTab(state.rows));
+  });
+
+  document.getElementById('searchInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') loadRows(); });
+  loadRows();
+</script>
+</body>
+</html>

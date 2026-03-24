@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Revisiones | CHIRIPAPP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#f4f9fd;--card:#fff;--text:#0f172a;--muted:#475569;--brand:#1ea4de;--brand2:#177fbf;--line:#dbe8f2;--ok:#16a34a;--warn:#b45309;--danger:#dc2626;--shadow:0 18px 40px rgba(15,23,42,.08)}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial;overflow-x:hidden}
+    .shell{display:grid;grid-template-columns:280px 1fr;min-height:100vh;transition:grid-template-columns .2s ease}.shell.collapsed{grid-template-columns:0 1fr}
+    .sidebar-backdrop{display:none}
+    .sidebar{background:#fff;color:#0f172a;padding:22px 18px;position:sticky;top:0;height:100vh;overflow:auto;transition:transform .22s ease,opacity .22s ease;border-right:1px solid var(--line);box-shadow:0 10px 30px rgba(15,23,42,.05)}.shell.collapsed .sidebar{transform:translateX(-100%);opacity:0;pointer-events:none}
+    .brand{display:flex;flex-direction:column;gap:10px;padding-bottom:18px;border-bottom:1px solid var(--line)}.brand img{width:180px;max-width:100%;object-fit:contain}
+    .nav-group{margin-top:20px}.nav-title{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8;margin:0 0 10px 10px}.nav-list{display:flex;flex-direction:column;gap:6px}.nav-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:14px;color:#334155;text-decoration:none;font-size:14px;font-weight:600}.nav-item.active{background:linear-gradient(135deg,#e0f2fe,#dbeafe);color:#075985;border:1px solid #bae6fd}.nav-item.muted{opacity:.76}
+    .main{padding:22px;min-width:0}.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}.topbar-left{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .icon-btn,.btn{border:none;border-radius:14px;padding:11px 14px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}.icon-btn{width:46px;height:46px;padding:0;background:#fff;border:1px solid var(--line);font-size:18px}.btn-primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;box-shadow:0 10px 24px rgba(23,127,191,.22)}.btn-ghost{background:#fff;color:var(--text);border:1px solid var(--line)}.btn-danger{background:#fff1f2;color:#b91c1c;border:1px solid #fecdd3}.btn-success{background:#ecfdf5;color:#166534;border:1px solid #bbf7d0}
+    .hero{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-radius:22px;padding:16px;box-shadow:0 18px 40px rgba(23,127,191,.24);margin-bottom:14px}.hero-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.hero-stat{background:linear-gradient(180deg,rgba(255,255,255,.20),rgba(255,255,255,.12));border:1px solid rgba(255,255,255,.20);border-radius:16px;padding:12px 14px;backdrop-filter:blur(10px);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 10px 24px rgba(5,55,96,.12)}.hero-stat-label{font-size:11px;color:rgba(255,255,255,.76);margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}.hero-stat-value{font-size:30px;font-weight:800;line-height:1;color:#fff}.hero-stat-sub{margin-top:6px;font-size:12px;color:rgba(255,255,255,.82);line-height:1.3}
+    .grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:14px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 2px 8px rgba(15,23,42,.05)}.metric-label{font-size:12px;color:#64748b;margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}.metric-value{font-size:30px;font-weight:800;line-height:1}.metric-sub{margin-top:8px;font-size:13px;color:#475569}
+    .toolbar{display:grid;grid-template-columns:minmax(320px,1fr) auto;gap:10px;align-items:center}.toolbar input{width:100%;padding:12px;border:1px solid var(--line);border-radius:14px;background:#fff;font-size:14px}
+    .filter-row{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;margin-bottom:10px;padding-bottom:2px}.chips{display:contents}.chip{border:1px solid var(--line);background:#fff;padding:8px 12px;border-radius:999px;font-size:12px;font-weight:800;cursor:pointer;color:#334155;white-space:nowrap;flex:0 0 auto}.chip.active{background:#172554;color:#fff;border-color:#172554}
+    .table-card{overflow:hidden;padding:0;min-width:0}.table-wrap{overflow-x:auto;overflow-y:visible;max-width:100%}table{width:100%;border-collapse:collapse;min-width:980px;table-layout:fixed}thead th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#64748b;background:#f8fbfe;padding:12px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:bottom;position:relative}thead .th-controls{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}thead .th-btn{display:inline-flex;align-items:center;gap:6px;background:none;border:none;padding:0;font:inherit;color:inherit;font-weight:800;cursor:pointer;text-transform:inherit;letter-spacing:inherit;min-width:0;flex:1 1 auto}thead .th-btn .th-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sort-indicator{font-size:11px;color:#94a3b8;flex:0 0 auto}.th-filter-dropdown{position:relative;flex:0 0 auto}.th-filter-dropdown summary{list-style:none;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:10px;background:#fff;color:#475569;cursor:pointer;font-size:14px}.th-filter-dropdown summary::-webkit-details-marker{display:none}.th-filter-dropdown[open] summary{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}.dd-list{position:absolute;top:calc(100% + 8px);right:0;min-width:220px;max-width:280px;max-height:260px;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px;box-shadow:var(--shadow);z-index:20}.dd-empty{font-size:12px;color:#64748b;padding:6px 4px}.dd-option{display:flex;align-items:flex-start;gap:8px;padding:6px 4px;font-size:12px;color:#334155;text-transform:none;letter-spacing:normal;font-weight:600}.dd-option input{margin-top:2px}.dd-option span{word-break:break-word}
+    tbody td{padding:12px 10px;border-bottom:1px solid #edf2f7;vertical-align:middle}tbody tr:hover{background:#fbfdff}.click-row{cursor:pointer}.click-row td{transition:background .15s ease}
+    .badge{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:800;text-transform:capitalize;white-space:nowrap}.badge.approved,.badge.active,.badge.visible{background:#dcfce7;color:#166534}.badge.pending,.badge.in_review,.badge.review,.badge.por_vencer{background:#fef3c7;color:#92400e}.badge.rejected,.badge.inactive,.badge.expired,.badge.suspended{background:#fee2e2;color:#b91c1c}.badge.default{background:#e2e8f0;color:#334155}
+    .name-cell strong,.docs-cell strong{display:block}.muted{color:#64748b}.mini{font-size:12px;color:#64748b;line-height:1.4}.empty{padding:22px;text-align:center;color:#64748b}
+    .mobile-only{display:none}.desktop-only{display:block}.mobile-stack{display:flex;flex-direction:column;gap:10px}.mobile-item{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px 14px;box-shadow:0 2px 8px rgba(15,23,42,.05)}.mobile-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.mobile-actions .btn,.mobile-actions .action-link{flex:1;justify-content:center;text-align:center}.action-link{padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--text);text-decoration:none;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px;z-index:80}.modal-backdrop.open{display:flex}.modal{width:min(1180px,96vw);max-height:92vh;overflow:visible;background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:0 30px 80px rgba(15,23,42,.26);padding:18px}.modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}.modal-title{margin:0;font-size:24px}.modal-close{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:20px}.modal-grid{display:grid;grid-template-columns:320px 1fr;gap:14px}.info-card,.preview-card{background:#f8fbfe;border:1px solid #e2e8f0;border-radius:18px;padding:14px}.info-list{display:grid;gap:10px}.info-item{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:12px}.info-item .label{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.08em;font-weight:800;margin-bottom:6px}.info-item .value{font-size:14px;color:#0f172a;line-height:1.45}.doc-preview-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.doc-preview-item{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:14px}.doc-preview-frame{margin-top:10px;border:1px solid #dbe8f2;border-radius:16px;background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.doc-preview-frame img{width:100%;height:auto;max-height:calc(92vh - 260px);object-fit:contain;background:#fff}
+.doc-preview-frame iframe{width:100%;height:calc(92vh - 260px);border:0;background:#fff}
+.doc-preview-empty{padding:18px;text-align:center;color:#64748b;font-size:13px}.modal-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+    @media (max-width:1260px){.hero-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media (max-width:1100px){.grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media (max-width:900px){.shell,.shell.collapsed{grid-template-columns:1fr}.sidebar{position:fixed;left:0;width:280px;z-index:30}.shell.collapsed .sidebar{transform:translateX(-100%)}.sidebar-backdrop{display:block;position:fixed;inset:0;background:rgba(15,23,42,.38);z-index:25;opacity:1;transition:opacity .2s ease}.shell.collapsed + .sidebar-backdrop{opacity:0;pointer-events:none}.main{padding:14px;min-width:0;width:100%}}
+    @media (max-width:900px){.modal-grid{grid-template-columns:1fr}.doc-preview-grid{grid-template-columns:1fr}.doc-preview-frame,.doc-preview-frame img,.doc-preview-frame iframe{height:420px;min-height:420px}}
+    @media (max-width:700px){.grid-4{grid-template-columns:1fr}.hero{display:none}.toolbar{grid-template-columns:1fr}.desktop-only{display:none}.mobile-only{display:block}.table-card{padding:10px}.card{border-radius:16px;padding:14px}.icon-btn{width:42px;height:42px}.sidebar{width:88vw;max-width:320px}.modal{padding:14px;border-radius:18px}.modal-title{font-size:20px}.doc-preview-frame,.doc-preview-frame img,.doc-preview-frame iframe{height:320px;min-height:320px}}
+  </style>
+</head>
+<body>
+  <div class="shell collapsed" id="appShell">
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="/demo/assets/logo_horizontal_trans.png" alt="CHIRIPAPP" />
+      </div>
+      <div class="nav-group">
+        <p class="nav-title">Principal</p>
+        <div class="nav-list">
+          <a class="nav-item" href="/demo/admin-dashboard.html">📊 Dashboard</a>
+        </div>
+      </div>
+      <div class="nav-group">
+        <p class="nav-title">Operaciones</p>
+        <div class="nav-list">
+          <a class="nav-item" href="/demo/admin-chiriperos.html">👷 Chiriperos</a>
+          <a class="nav-item active" href="/demo/admin-review.html">🛡️ Revisiones</a>
+          <a class="nav-item" href="/demo/admin-memberships.html">💳 Membresías</a>
+          <a class="nav-item muted" href="#">📣 Anuncios</a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="topbar-left">
+          <button class="icon-btn" id="sidebarToggle" type="button" aria-label="Mostrar u ocultar menú">☰</button>
+          <div>
+            <div class="mini" style="font-weight:700;letter-spacing:.06em;text-transform:uppercase">CHIRIPAPP Admin</div>
+            <strong style="font-size:22px">Revisiones de onboarding</strong>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <a class="btn btn-ghost" href="/demo/admin-dashboard.html">Volver al dashboard</a>
+          <button class="btn btn-primary" type="button" onclick="loadPending()">Actualizar</button>
+        </div>
+      </div>
+
+      <section class="hero desktop-only">
+        <div class="hero-summary">
+          <article class="hero-stat"><div class="hero-stat-label">Pendientes</div><div class="hero-stat-value" id="metricPending">—</div><div class="hero-stat-sub">Casos en onboarding por revisar</div></article>
+          <article class="hero-stat"><div class="hero-stat-label">Con documentos</div><div class="hero-stat-value" id="metricWithDocs">—</div><div class="hero-stat-sub">Expedientes listos para abrir</div></article>
+          <article class="hero-stat"><div class="hero-stat-label">Sin documentos</div><div class="hero-stat-value" id="metricWithoutDocs">—</div><div class="hero-stat-sub">Casos incompletos o vacíos</div></article>
+          <article class="hero-stat"><div class="hero-stat-label">Ingresados hoy</div><div class="hero-stat-value" id="metricToday">—</div><div class="hero-stat-sub">Para priorizar atención rápida</div></article>
+        </div>
+      </section>
+
+      <section class="grid-4 mobile-only" style="margin-top:0">
+        <article class="card"><div class="metric-label">Pendientes</div><div class="metric-value" id="metricPendingMobile">—</div><div class="metric-sub">Casos en onboarding</div></article>
+        <article class="card"><div class="metric-label">Con documentos</div><div class="metric-value" id="metricWithDocsMobile">—</div><div class="metric-sub">Expedientes listos</div></article>
+        <article class="card"><div class="metric-label">Sin documentos</div><div class="metric-value" id="metricWithoutDocsMobile">—</div><div class="metric-sub">Casos incompletos</div></article>
+        <article class="card"><div class="metric-label">Ingresados hoy</div><div class="metric-value" id="metricTodayMobile">—</div><div class="metric-sub">Para priorizar</div></article>
+      </section>
+
+      <section class="card" style="margin-top:12px">
+        <div class="filter-row">
+          <div class="chips" id="quickChips">
+            <button class="chip active" data-quick-filter="all">Todos</button>
+            <button class="chip" data-quick-filter="with-docs">Con documentos</button>
+            <button class="chip" data-quick-filter="without-docs">Sin documentos</button>
+            <button class="chip" data-quick-filter="today">Ingresados hoy</button>
+          </div>
+        </div>
+        <div class="toolbar">
+          <input id="searchInput" placeholder="Buscar por nombre, cédula, teléfono o documento" />
+          <button class="btn btn-primary" type="button" onclick="loadPending()">Buscar</button>
+        </div>
+      </section>
+
+      <section class="card table-card desktop-only" style="margin-top:12px">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>
+                  <div class="th-controls">
+                    <button class="th-btn" data-sort="display_name"><span class="th-label">Chiripero</span><span class="sort-indicator" data-sort-indicator="display_name">↕</span></button>
+                    <details class="th-filter-dropdown"><summary title="Filtrar chiripero">▾</summary><div class="dd-list" id="filterNameList"></div></details>
+                  </div>
+                </th>
+                <th>
+                  <div class="th-controls">
+                    <button class="th-btn" data-sort="cedula_number"><span class="th-label">Cédula</span><span class="sort-indicator" data-sort-indicator="cedula_number">↕</span></button>
+                  </div>
+                </th>
+                <th>
+                  <div class="th-controls">
+                    <button class="th-btn" data-sort="whatsapp_number"><span class="th-label">WhatsApp</span><span class="sort-indicator" data-sort-indicator="whatsapp_number">↕</span></button>
+                  </div>
+                </th>
+                <th>
+                  <div class="th-controls">
+                    <button class="th-btn" data-sort="documents_count"><span class="th-label">Docs onboarding</span><span class="sort-indicator" data-sort-indicator="documents_count">↕</span></button>
+                    <details class="th-filter-dropdown"><summary title="Filtrar documentos">▾</summary><div class="dd-list" id="filterDocsList"></div></details>
+                  </div>
+                </th>
+                <th>
+                  <div class="th-controls">
+                    <button class="th-btn" data-sort="documents_status"><span class="th-label">Estado docs</span><span class="sort-indicator" data-sort-indicator="documents_status">↕</span></button>
+                    <details class="th-filter-dropdown"><summary title="Filtrar estado">▾</summary><div class="dd-list" id="filterStatusList"></div></details>
+                  </div>
+                </th>
+                <th>
+                  <div class="th-controls">
+                    <button class="th-btn" data-sort="created_at"><span class="th-label">Ingreso</span><span class="sort-indicator" data-sort-indicator="created_at">↕</span></button>
+                  </div>
+                </th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"><tr><td colspan="7" class="empty">Cargando onboarding...</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card table-card mobile-only" style="margin-top:12px">
+        <div id="mobileList"></div>
+      </section>
+    </main>
+  </div>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <div class="modal-backdrop" id="detailModalBackdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="detailModalTitle">
+      <div class="modal-head">
+        <div>
+          <div class="mini" style="font-weight:700;letter-spacing:.06em;text-transform:uppercase">Revisión de onboarding</div>
+          <h2 class="modal-title" id="detailModalTitle">Cargando caso...</h2>
+        </div>
+        <button class="modal-close" type="button" id="detailModalClose" aria-label="Cerrar">×</button>
+      </div>
+      <div class="modal-grid">
+        <div class="info-card">
+          <div class="info-list" id="detailInfoList"></div>
+          <div class="modal-actions">
+            <button class="btn btn-success" type="button" id="detailApproveBtn">Aprobar</button>
+            <button class="btn btn-danger" type="button" id="detailRejectBtn">Rechazar</button>
+          </div>
+        </div>
+        <div class="preview-card">
+          <div class="section-title" style="margin-bottom:14px"><h2 style="margin:0;font-size:18px">Documentos onboarding</h2><small class="muted">Preview grande para lectura rápida</small></div>
+          <div class="doc-preview-grid" id="detailDocsWrap"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const state = {
+    rows: [],
+    sort: { key:'created_at', dir:'desc' },
+    quickFilter: 'all',
+    filters: { name: [], docs: [], status: [] },
+    activeDetailId: null
+  };
+
+  const shell = document.getElementById('appShell');
+  const detailModalBackdrop = document.getElementById('detailModalBackdrop');
+  const detailInfoList = document.getElementById('detailInfoList');
+  const detailDocsWrap = document.getElementById('detailDocsWrap');
+  const detailModalTitle = document.getElementById('detailModalTitle');
+  const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+  function syncSidebarMode(){ if (window.innerWidth > 900) shell.classList.remove('collapsed'); else shell.classList.add('collapsed'); }
+  document.getElementById('sidebarToggle')?.addEventListener('click', () => shell.classList.toggle('collapsed'));
+  sidebarBackdrop?.addEventListener('click', () => shell.classList.add('collapsed'));
+  window.addEventListener('resize', syncSidebarMode);
+  syncSidebarMode();
+
+  function escapeHtml(v){ return String(v ?? '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s])); }
+  function normalize(v){ return String(v || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+  function formatDate(v){ try { return v ? new Date(v).toLocaleDateString('es-DO', { day:'2-digit', month:'2-digit', year:'2-digit' }) : '—'; } catch { return '—'; } }
+  function setText(id, value){ const el = document.getElementById(id); if (el) el.textContent = value; }
+  function badgeClass(value){ const v = String(value || '').toLowerCase(); if (['approved','active','visible'].includes(v)) return v; if (['pending','in_review','review','por_vencer'].includes(v)) return v; if (['rejected','inactive','expired','suspended'].includes(v)) return v; return 'default'; }
+  function badge(value){ return `<span class="badge ${badgeClass(value)}">${escapeHtml(value || '—')}</span>`; }
+  function docsCount(row){ return Array.isArray(row.documents) ? row.documents.length : 0; }
+  function docsSummary(row){ return docsCount(row) ? `${docsCount(row)} documento(s)` : 'Sin documentos'; }
+  function isToday(value){ if (!value) return false; const d = new Date(value); const n = new Date(); return d.getFullYear()===n.getFullYear() && d.getMonth()===n.getMonth() && d.getDate()===n.getDate(); }
+  function rowSearchText(row){ return normalize([row.display_name, row.cedula_number, row.whatsapp_number, row.documents_status, docsSummary(row), ...(row.documents || []).map(d => `${d.doc_type} ${d.review_status}`)].join(' | ')); }
+  function docLabel(type){ return ({ cedula_front:'Cédula', buena_conducta:'Buena conducta' }[type] || type || 'Documento'); }
+  function docPreviewHtml(url, label){
+    const lower = String(url || '').toLowerCase();
+    if (/\.(png|jpg|jpeg|gif|webp)(\?|$)/.test(lower) || lower.startsWith('data:image/')) return `<div class="doc-preview-frame"><img src="${escapeHtml(url)}" alt="${escapeHtml(label)}" loading="lazy" /></div>`;
+    if (/\.pdf(\?|$)/.test(lower) || lower.startsWith('data:application/pdf')) return `<div class="doc-preview-frame"><iframe src="${escapeHtml(url)}" title="${escapeHtml(label)}"></iframe></div>`;
+    return '<div class="doc-preview-frame"><div class="doc-preview-empty">Vista previa no disponible para este archivo.</div></div>';
+  }
+
+  function getUniqueOptions(values){ return [...new Set(values.map(v => String(v || '').trim()).filter(Boolean))].sort((a,b) => a.localeCompare(b, 'es', { sensitivity:'base' })); }
+  function renderFilterList(containerId, filterKey, options){
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const selected = new Set(state.filters[filterKey] || []);
+    if (!options.length) { container.innerHTML = '<div class="dd-empty">Sin valores disponibles</div>'; return; }
+    container.innerHTML = options.map(option => `<label class="dd-option"><input type="checkbox" data-filter-key="${filterKey}" value="${escapeHtml(option)}" ${selected.has(String(option)) ? 'checked' : ''} /><span>${escapeHtml(option)}</span></label>`).join('');
+  }
+  function renderFilterOptions(){
+    renderFilterList('filterNameList', 'name', getUniqueOptions(state.rows.map(row => row.display_name)));
+    renderFilterList('filterDocsList', 'docs', ['Con documentos', 'Sin documentos']);
+    renderFilterList('filterStatusList', 'status', getUniqueOptions(state.rows.map(row => row.documents_status)));
+  }
+
+  function renderMetrics(rows){
+    const pending = rows.length;
+    const withDocs = rows.filter(r => docsCount(r) > 0).length;
+    const withoutDocs = rows.filter(r => docsCount(r) === 0).length;
+    const today = rows.filter(r => isToday(r.created_at)).length;
+    setText('metricPending', pending); setText('metricWithDocs', withDocs); setText('metricWithoutDocs', withoutDocs); setText('metricToday', today);
+    setText('metricPendingMobile', pending); setText('metricWithDocsMobile', withDocs); setText('metricWithoutDocsMobile', withoutDocs); setText('metricTodayMobile', today);
+  }
+
+  function applySearch(rows){
+    const query = normalize(document.getElementById('searchInput')?.value.trim() || '');
+    if (!query) return rows;
+    return rows.filter(row => rowSearchText(row).includes(query));
+  }
+  function applyQuickFilter(rows){
+    if (state.quickFilter === 'with-docs') return rows.filter(r => docsCount(r) > 0);
+    if (state.quickFilter === 'without-docs') return rows.filter(r => docsCount(r) === 0);
+    if (state.quickFilter === 'today') return rows.filter(r => isToday(r.created_at));
+    return rows;
+  }
+  function applyHeaderFilters(rows){
+    const f = state.filters;
+    return rows.filter(row => {
+      if (f.name.length && !f.name.some(v => normalize(row.display_name).includes(normalize(v)))) return false;
+      if (f.docs.length) {
+        const label = docsCount(row) > 0 ? 'Con documentos' : 'Sin documentos';
+        if (!f.docs.includes(label)) return false;
+      }
+      if (f.status.length && !f.status.includes(row.documents_status)) return false;
+      return true;
+    });
+  }
+  function sortRows(rows){
+    const { key, dir } = state.sort;
+    const factor = dir === 'asc' ? 1 : -1;
+    return [...rows].sort((a,b) => {
+      let av = a[key], bv = b[key];
+      if (key === 'documents_count') { av = docsCount(a); bv = docsCount(b); }
+      if (key === 'created_at') { av = av ? new Date(av).getTime() : 0; bv = bv ? new Date(bv).getTime() : 0; }
+      if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * factor;
+      return String(av || '').localeCompare(String(bv || ''), 'es', { sensitivity:'base' }) * factor;
+    });
+  }
+  function updateSortIndicators(){ document.querySelectorAll('[data-sort-indicator]').forEach(el => { const key = el.getAttribute('data-sort-indicator'); el.textContent = state.sort.key === key ? (state.sort.dir === 'asc' ? '↑' : '↓') : '↕'; }); }
+  function getVisibleRows(){ return sortRows(applyHeaderFilters(applyQuickFilter(applySearch(state.rows)))); }
+  function updateChipUI(){ document.querySelectorAll('.chip').forEach(btn => btn.classList.toggle('active', btn.dataset.quickFilter === state.quickFilter)); }
+  function closeDetailModal(){ detailModalBackdrop?.classList.remove('open'); state.activeDetailId = null; }
+  async function openDetail(id){
+    try {
+      const data = await fetch('/admin/chiriperos/' + encodeURIComponent(id)).then(r => r.json());
+      if (data.error) throw new Error(data.error);
+      state.activeDetailId = id;
+      detailModalTitle.textContent = data.display_name || 'Detalle de onboarding';
+      detailInfoList.innerHTML = [
+        ['Nombre', data.display_name || '—'],
+        ['Cédula', data.cedula_number || '—'],
+        ['WhatsApp', data.whatsapp_number || '—'],
+        ['Teléfono', data.call_number || data.whatsapp_number || '—'],
+        ['Registro', formatDate(data.created_at)],
+        ['Estado docs', data.documents_status || '—']
+      ].map(([label, value]) => `<div class="info-item"><div class="label">${escapeHtml(label)}</div><div class="value">${typeof value === 'string' && value.includes('badge ') ? value : escapeHtml(value)}</div></div>`).join('');
+      const docs = (data.documents || []).filter(doc => ['cedula_front','buena_conducta'].includes(String(doc.doc_type || '').toLowerCase()));
+      detailDocsWrap.innerHTML = docs.length ? docs.map(doc => `
+        <article class="doc-preview-item">
+          <strong>${escapeHtml(docLabel(doc.doc_type))}</strong>
+          <div class="mini" style="margin-top:4px">Estado: ${escapeHtml(doc.review_status || 'pending')}</div>
+          ${docPreviewHtml(doc.file_url, docLabel(doc.doc_type))}
+          <div class="modal-actions"><a class="action-link" href="${escapeHtml(doc.file_url)}" target="_blank" rel="noopener">Abrir archivo</a></div>
+        </article>
+      `).join('') : '<div class="doc-preview-empty">Este caso no tiene los documentos base de onboarding cargados.</div>';
+      detailModalBackdrop?.classList.add('open');
+    } catch (e) {
+      alert('No pude abrir el detalle: ' + (e.message || 'error'));
+    }
+  }
+
+  async function decide(id, decision, ev){
+    ev?.stopPropagation();
+    const r = await fetch(`/admin/chiriperos/${id}/decision`, {
+      method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ decision, note:'' })
+    });
+    if(!r.ok){ alert('No se pudo procesar'); return; }
+    if (state.activeDetailId === id) closeDetailModal();
+    await loadPending();
+  }
+
+  function renderDesktopRows(rows){
+    const tbody = document.getElementById('tableBody');
+    if (!rows.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty">No encontré chiriperos en onboarding con esos filtros.</td></tr>'; return; }
+    tbody.innerHTML = rows.map(row => `
+      <tr class="click-row" onclick="openDetail('${row.profile_id}')">
+        <td class="name-cell"><strong>${escapeHtml(row.display_name || 'Sin nombre')}</strong><span class="mini">Toca para abrir detalle</span></td>
+        <td>${escapeHtml(row.cedula_number || '—')}</td>
+        <td>${escapeHtml(row.whatsapp_number || '—')}</td>
+        <td class="docs-cell"><strong>${docsSummary(row)}</strong><span class="mini">${escapeHtml((row.documents || []).map(d => d.doc_type).join(' · ') || 'Sin tipos cargados')}</span></td>
+        <td>${badge(row.documents_status)}</td>
+        <td>${escapeHtml(formatDate(row.created_at))}</td>
+        <td>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="action-link" type="button" onclick="event.stopPropagation(); openDetail('${row.profile_id}')">Ver detalle</button>
+            <button class="btn btn-success" type="button" onclick="decide('${row.profile_id}','approved',event)">Aprobar</button>
+            <button class="btn btn-danger" type="button" onclick="decide('${row.profile_id}','rejected',event)">Rechazar</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+  function renderMobileRows(rows){
+    const wrap = document.getElementById('mobileList');
+    if (!wrap) return;
+    if (!rows.length) { wrap.innerHTML = '<div class="empty">No encontré chiriperos en onboarding con esos filtros.</div>'; return; }
+    wrap.innerHTML = `<div class="mobile-stack">${rows.map(row => `
+      <article class="mobile-item" onclick="openDetail('${row.profile_id}')">
+        <strong>${escapeHtml(row.display_name || 'Sin nombre')}</strong>
+        <div class="mini" style="margin-top:4px">Cédula: ${escapeHtml(row.cedula_number || '—')} · WhatsApp: ${escapeHtml(row.whatsapp_number || '—')}</div>
+        <div class="mini" style="margin-top:4px">${escapeHtml(docsSummary(row))} · Ingreso ${escapeHtml(formatDate(row.created_at))}</div>
+        <div style="margin-top:8px">${badge(row.documents_status)}</div>
+        <div class="mobile-actions">
+          <button class="action-link" type="button" onclick="event.stopPropagation(); openDetail('${row.profile_id}')">Ver detalle</button>
+          <button class="btn btn-success" type="button" onclick="decide('${row.profile_id}','approved',event)">Aprobar</button>
+          <button class="btn btn-danger" type="button" onclick="decide('${row.profile_id}','rejected',event)">Rechazar</button>
+        </div>
+      </article>
+    `).join('')}</div>`;
+  }
+  function renderView(){ const visibleRows = getVisibleRows(); renderMetrics(visibleRows); renderDesktopRows(visibleRows); renderMobileRows(visibleRows); updateSortIndicators(); updateChipUI(); }
+
+  async function loadPending(){
+    try {
+      const data = await fetch('/admin/chiriperos/pending').then(r => r.json());
+      state.rows = Array.isArray(data) ? data : [];
+      renderFilterOptions();
+      renderView();
+    } catch (e) {
+      document.getElementById('tableBody').innerHTML = `<tr><td colspan="7" class="empty">No pude cargar onboarding: ${escapeHtml(e.message || 'error')}</td></tr>`;
+      const wrap = document.getElementById('mobileList'); if (wrap) wrap.innerHTML = `<div class="empty">No pude cargar onboarding: ${escapeHtml(e.message || 'error')}</div>`;
+    }
+  }
+
+  document.getElementById('detailModalClose')?.addEventListener('click', closeDetailModal);
+  detailModalBackdrop?.addEventListener('click', (event) => { if (event.target === detailModalBackdrop) closeDetailModal(); });
+  document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeDetailModal(); });
+  document.getElementById('detailApproveBtn')?.addEventListener('click', (event) => { if (state.activeDetailId) decide(state.activeDetailId, 'approved', event); });
+  document.getElementById('detailRejectBtn')?.addEventListener('click', (event) => { if (state.activeDetailId) decide(state.activeDetailId, 'rejected', event); });
+  document.getElementById('searchInput')?.addEventListener('input', renderView);
+  document.getElementById('searchInput')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') loadPending(); });
+  document.getElementById('quickChips')?.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('[data-quick-filter]');
+    if (!btn) return;
+    const filter = btn.dataset.quickFilter;
+    state.quickFilter = state.quickFilter === filter ? 'all' : filter;
+    renderView();
+  });
+  document.querySelectorAll('[data-sort]').forEach(btn => btn.addEventListener('click', () => {
+    const key = btn.getAttribute('data-sort');
+    if (state.sort.key === key) state.sort.dir = state.sort.dir === 'asc' ? 'desc' : 'asc';
+    else state.sort = { key, dir:'asc' };
+    renderView();
+  }));
+  document.querySelector('thead')?.addEventListener('change', (event) => {
+    const input = event.target.closest('input[type="checkbox"][data-filter-key]');
+    if (!input) return;
+    const key = input.dataset.filterKey;
+    const values = new Set(state.filters[key] || []);
+    if (input.checked) values.add(input.value); else values.delete(input.value);
+    state.filters[key] = [...values];
+    renderView();
+  });
+  document.querySelectorAll('.th-filter-dropdown').forEach(dropdown => dropdown.addEventListener('toggle', () => {
+    if (!dropdown.open) return;
+    document.querySelectorAll('.th-filter-dropdown').forEach(other => { if (other !== dropdown) other.open = false; });
+  }));
+  document.addEventListener('click', (event) => {
+    if (event.target.closest('.th-filter-dropdown')) return;
+    document.querySelectorAll('.th-filter-dropdown').forEach(dropdown => { dropdown.open = false; });
+  });
+
+  loadPending();
+</script>
+</body>
+</html>

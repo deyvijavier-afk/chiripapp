@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Regístrate | CHIRIPAPP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#f4f9fd;--card:#fff;--text:#0f172a;--muted:#475569;--brand:#1ea4de;--brand2:#177fbf;--line:#dbe8f2;--ok:#16a34a;--warn:#b45309}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    .container{max-width:1120px;margin:0 auto;padding:16px}
+    .topbar{display:flex;align-items:center;justify-content:flex-start;padding:6px 0}
+    .logo-img{height:110px;max-width:560px;width:auto;object-fit:contain}
+    .hero{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-radius:20px;padding:20px;margin-bottom:14px;box-shadow:0 16px 34px rgba(23,127,191,.25)}
+    .hero h1{margin:0;font-size:30px;line-height:1.05}
+
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 4px 14px rgba(15,23,42,.06)}
+    .stepper{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;align-items:start;margin-bottom:10px}
+    .step-item{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;position:relative}
+    .step-dot{width:14px;height:14px;border-radius:999px;background:#cbd5e1;border:2px solid #94a3b8;position:relative;z-index:2}
+    .step-item.active .step-dot{background:#0ea5e9;border-color:#0284c7;box-shadow:0 0 0 4px rgba(14,165,233,.18)}
+    .step-label{font-size:11px;color:#475569;line-height:1.15}
+    .step-item.active .step-label{color:#0f172a;font-weight:700}
+    .step-item:not(:last-child)::after{content:'';position:absolute;top:7px;left:55%;right:-45%;height:2px;background:linear-gradient(90deg,#cbd5e1,#dbeafe)}
+
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .field{min-width:0}
+    label{display:block;font-size:13px;color:#334155;margin:4px 0 6px}
+    input,select,button{width:100%;min-width:0;padding:11px 12px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:#fff}
+
+    .doc-title{margin:14px 0 8px;font-size:14px;font-weight:700;color:#334155}
+    .doc-card{border:1px solid var(--line);border-radius:12px;padding:10px;background:#f8fbfe;display:flex;flex-direction:column;gap:8px}
+    .doc-actions{display:flex;justify-content:flex-start}
+
+    .chip-btn{display:inline-flex;align-items:center;justify-content:center;height:34px;width:142px;padding:0 10px;border-radius:999px;border:1px solid var(--line);background:#fff;color:#334155;font-size:12px;font-weight:700;cursor:pointer}
+    .chip-btn.blue{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-color:#0ea5e9}
+    .chip-btn.black{background:var(--text);color:#fff;border-color:var(--text)}
+
+    .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    .actions .left{justify-self:start}
+    .actions .right{justify-self:end}
+    .muted{font-size:12px;color:var(--muted)} .ok{color:var(--ok);font-weight:700} .warn{color:var(--warn);font-weight:700}
+
+    @media(max-width:760px){
+      .container{padding:12px}.logo-img{height:88px}.hero h1{font-size:24px}
+      .grid{grid-template-columns:1fr}
+      .chip-btn{width:101px}
+      .stepper{grid-template-columns:repeat(5,minmax(80px,1fr));overflow-x:auto;padding-bottom:2px}
+      .step-item{align-items:center;text-align:center;padding-left:0}
+      .step-item:not(:last-child)::after{display:block}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="topbar"><img class="logo-img" src="/demo/assets/logo_horizontal_trans.png" alt="CHIRIPAPP"/></div>
+    <section class="hero"><h1>Regístrate!</h1><div class="muted" style="color:#e2f2ff;margin-top:6px">Paso 1: Registro</div></section>
+
+    <div class="card" id="onboardingStepperRegister">
+      <div class="stepper">
+        <div class="step-item active"><span class="step-dot"></span><span class="step-label">Registro</span></div>
+        <div class="step-item"><span class="step-dot"></span><span class="step-label">Membresía y pago</span></div>
+        <div class="step-item"><span class="step-dot"></span><span class="step-label">Detalles de anuncio</span></div>
+        <div class="step-item"><span class="step-dot"></span><span class="step-label">En revisión</span></div>
+        <div class="step-item"><span class="step-dot"></span><span class="step-label">Completado</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="grid">
+        <div class="field"><label>Nombres</label><input id="first_name" /></div>
+        <div class="field"><label>Apellidos</label><input id="last_name" /></div>
+        <div class="field"><label>Cédula</label><input id="cedula_number" placeholder="001-1234567-8"/></div>
+        <div class="field"><label>Fecha nacimiento</label><input id="birth_date" type="date"/></div>
+        <div class="field"><label>Dirección</label><input id="address" placeholder="Sector, calle, número"/></div>
+        <div class="field"><label>Teléfono</label><input id="phone" placeholder="8091234567"/></div>
+        <div class="field"><label>WhatsApp</label><input id="whatsapp" placeholder="8091234567"/></div>
+        <div class="field"><label>Servicio principal</label><select id="service"></select></div>
+        <div class="field"><label>Zona</label><select id="zone"></select></div>
+      </div>
+
+      <div class="doc-title">Documentos</div>
+      <div class="grid">
+        <div class="doc-card">
+          <label>Cédula (frente)</label>
+          <input id="cedula_front_file" type="file" accept="image/*,.pdf" style="display:none" />
+          <div class="doc-actions"><button type="button" class="chip-btn blue" id="frontPickBtn">📁 Cargar</button></div>
+          <div id="frontStatus" class="muted">Sin archivo</div>
+        </div>
+        <div class="doc-card">
+          <label>Cédula (dorso)</label>
+          <input id="cedula_back_file" type="file" accept="image/*,.pdf" style="display:none" />
+          <div class="doc-actions"><button type="button" class="chip-btn blue" id="backPickBtn">📁 Cargar</button></div>
+          <div id="backStatus" class="muted">Sin archivo</div>
+        </div>
+        <div class="doc-card">
+          <label>Papel de buena conducta</label>
+          <input id="buena_file" type="file" accept="image/*,.pdf" style="display:none" />
+          <div class="doc-actions"><button type="button" class="chip-btn blue" id="buenaPickBtn">📁/PDF Cargar</button></div>
+          <div id="buenaStatus" class="muted">Sin archivo</div>
+        </div>
+        <div class="doc-card">
+          <label>Foto de la persona (opcional)</label>
+          <input id="person_file" type="file" accept="image/*,.pdf" style="display:none" />
+          <div class="doc-actions"><button type="button" class="chip-btn blue" id="personPickBtn">📁 Cargar</button></div>
+          <div id="personStatus" class="muted">Sin archivo</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="actions" style="margin-top:10px">
+      <button type="button" class="chip-btn black left" onclick="resetForm()">Limpiar</button>
+      <button type="button" class="chip-btn blue right" onclick="submitForm()">Continuar</button>
+    </div>
+    <div id="status" class="muted" style="margin-top:10px"></div>
+  </div>
+
+<script>
+function bindPicker(buttonId, inputId, statusId){
+  const btn = document.getElementById(buttonId);
+  const input = document.getElementById(inputId);
+  const status = document.getElementById(statusId);
+  btn.addEventListener('click', ()=> input.click());
+  input.addEventListener('change', ()=>{
+    const f = (input.files||[])[0];
+    status.textContent = f ? `Archivo: ${f.name}` : 'Sin archivo';
+  });
+}
+
+async function init(){
+  const [services,zones]=await Promise.all([fetch('/servicios').then(r=>r.json()),fetch('/zonas').then(r=>r.json())]);
+  document.getElementById('service').innerHTML='<option value="">Selecciona</option>'+services.map(x=>`<option value="${x.id}">${x.name}</option>`).join('');
+  document.getElementById('zone').innerHTML='<option value="">Selecciona</option>'+zones.map(x=>`<option value="${x.id}">${x.name}</option>`).join('');
+  document.getElementById('phone').addEventListener('blur',()=>{ if(!document.getElementById('whatsapp').value) document.getElementById('whatsapp').value=document.getElementById('phone').value; });
+
+  bindPicker('frontPickBtn','cedula_front_file','frontStatus');
+  bindPicker('backPickBtn','cedula_back_file','backStatus');
+  bindPicker('buenaPickBtn','buena_file','buenaStatus');
+  bindPicker('personPickBtn','person_file','personStatus');
+}
+
+function resetForm(){
+  ['first_name','last_name','cedula_number','birth_date','address','phone','whatsapp'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
+  document.getElementById('service').value='';
+  document.getElementById('zone').value='';
+  ['cedula_front_file','cedula_back_file','buena_file','person_file'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
+  ['frontStatus','backStatus','buenaStatus','personStatus'].forEach(id=>{const el=document.getElementById(id); if(el) el.textContent='Sin archivo';});
+  document.getElementById('status').textContent='Formulario limpiado.';
+}
+
+async function submitForm(){
+  const status=document.getElementById('status'); status.textContent='Enviando...';
+  const cedFront=(document.getElementById('cedula_front_file').files||[])[0];
+  const cedBack=(document.getElementById('cedula_back_file').files||[])[0];
+  const buena=(document.getElementById('buena_file').files||[])[0];
+  const person=(document.getElementById('person_file').files||[])[0];
+  if(!cedFront||!cedBack||!buena){ status.innerHTML='<span class="warn">Faltan documentos: cédula frente + cédula dorso + buena conducta.</span>'; return; }
+
+  const payload={
+    first_name:document.getElementById('first_name').value.trim(),
+    last_name:document.getElementById('last_name').value.trim(),
+    full_name:`${document.getElementById('first_name').value.trim()} ${document.getElementById('last_name').value.trim()}`.trim(),
+    cedula_number:document.getElementById('cedula_number').value.trim(),
+    address:document.getElementById('address').value.trim(),
+    birth_date:document.getElementById('birth_date').value||null,
+    phone:document.getElementById('phone').value.trim(),
+    whatsapp:document.getElementById('whatsapp').value.trim(),
+    service_id:document.getElementById('service').value,
+    zone_id:document.getElementById('zone').value,
+    cedula_file_url:`upload://${cedFront.name}`,
+    cedula_back_file_url:`upload://${cedBack.name}`,
+    buena_conducta_file_url:`upload://${buena.name}`,
+    person_photo_url:person?`upload://${person.name}`:null
+  };
+
+  const r=await fetch('/chiriperos/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const out=await r.json().catch(()=>({error:'error'}));
+  if(!r.ok){ status.innerHTML=`<span class="warn">No se pudo enviar: ${out.error||'error'}</span>`; return; }
+  status.innerHTML='<span class="ok">✅ Solicitud enviada correctamente.</span>';
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Detalle del chiripero | CHIRIPAPP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#f4f9fd;--card:#fff;--text:#0f172a;--muted:#475569;--brand:#1ea4de;--brand2:#177fbf;--line:#dbe8f2;--ok:#16a34a;--warn:#b45309;--danger:#dc2626}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial;overflow-x:hidden}
+    .shell{display:grid;grid-template-columns:280px 1fr;min-height:100vh;transition:grid-template-columns .2s ease}.shell.collapsed{grid-template-columns:0 1fr}
+    .sidebar-backdrop{display:none}
+    .sidebar{background:#ffffff;color:#0f172a;padding:22px 18px;position:sticky;top:0;height:100vh;overflow:auto;transition:transform .22s ease,opacity .22s ease;border-right:1px solid var(--line);box-shadow:0 10px 30px rgba(15,23,42,.05)}.shell.collapsed .sidebar{transform:translateX(-100%);opacity:0;pointer-events:none}
+    .brand{display:flex;flex-direction:column;gap:10px;padding-bottom:18px;border-bottom:1px solid var(--line)}.brand img{width:180px;max-width:100%;object-fit:contain;filter:none}.brand small{color:#64748b;line-height:1.45}
+    .nav-group{margin-top:20px}.nav-title{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8;margin:0 0 10px 10px}.nav-list{display:flex;flex-direction:column;gap:6px}.nav-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:14px;color:#334155;text-decoration:none;font-size:14px;font-weight:600}.nav-item.active{background:linear-gradient(135deg,#e0f2fe,#dbeafe);color:#075985;border:1px solid #bae6fd}
+    .main{padding:22px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}.topbar-left{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .icon-btn,.btn{border:none;border-radius:14px;padding:11px 14px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}.icon-btn{width:46px;height:46px;padding:0;background:#fff;border:1px solid var(--line);font-size:18px}.btn-primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff}.btn-ghost{background:#fff;color:var(--text);border:1px solid var(--line)}
+    .hero{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-radius:24px;padding:24px;margin-bottom:16px;box-shadow:0 18px 40px rgba(23,127,191,.24)}.hero h1{margin:0 0 8px;font-size:31px;line-height:1.04}.hero p{margin:0;opacity:.95;max-width:840px}.hero-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.hero-pill{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.26);border-radius:999px;padding:8px 12px;font-size:12px;font-weight:600}
+    .grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:14px}.grid-2{display:grid;grid-template-columns:1.05fr .95fr;gap:12px;margin-top:12px}.stack{display:flex;flex-direction:column;gap:12px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 2px 8px rgba(15,23,42,.05)}.section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.section-title h2{margin:0;font-size:18px}.metric-label{font-size:12px;color:#64748b;margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}.metric-value{font-size:30px;font-weight:800;line-height:1}.metric-sub{margin-top:8px;font-size:13px;color:#475569}
+    .badge{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:800;text-transform:capitalize;white-space:nowrap}.badge.approved,.badge.active{background:#dcfce7;color:#166534}.badge.pending,.badge.in_review,.badge.review,.badge.grace{background:#fef3c7;color:#92400e}.badge.rejected,.badge.inactive,.badge.expired,.badge.suspended{background:#fee2e2;color:#b91c1c}.badge.default{background:#e2e8f0;color:#334155}
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.info-block{border:1px solid #edf2f7;border-radius:14px;padding:14px;background:#fbfdff}.label{font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:.04em;font-weight:700;margin-bottom:5px}.value{font-size:14px;color:#0f172a;line-height:1.55}.zones,.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{padding:5px 8px;border-radius:999px;background:#f1f5f9;border:1px solid #e2e8f0;font-size:12px;color:#334155}
+    .doc-list,.timeline{display:flex;flex-direction:column;gap:10px}.doc-item,.time-item{border:1px solid #edf2f7;border-radius:14px;padding:12px;background:#fff}.doc-top,.time-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.doc-preview{margin-top:12px;border:1px solid #e2e8f0;border-radius:14px;background:#f8fbfe;overflow:hidden}.doc-preview img{display:block;width:100%;max-height:480px;object-fit:contain;background:#fff}.doc-preview iframe{display:block;width:100%;height:420px;border:0;background:#fff}.doc-preview-empty{padding:18px;text-align:center;color:#64748b;font-size:13px}.muted{color:#64748b}.mini{font-size:12px;color:#64748b;line-height:1.45}.actions{display:flex;gap:10px;flex-wrap:wrap}.action-link{padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#fff;color:var(--text);text-decoration:none;font-size:13px;font-weight:700}
+    .empty{padding:22px;text-align:center;color:#64748b;border:1px dashed #cbd5e1;border-radius:14px;background:#fff}
+    @media (max-width:1100px){.grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-2,.info-grid{grid-template-columns:1fr}}
+    @media (max-width:900px){.shell,.shell.collapsed{grid-template-columns:1fr}.sidebar{position:fixed;left:0;width:280px;z-index:30}.shell.collapsed .sidebar{transform:translateX(-100%)}.sidebar-backdrop{display:block;position:fixed;inset:0;background:rgba(15,23,42,.38);z-index:25;opacity:1;transition:opacity .2s ease}.shell.collapsed + .sidebar-backdrop{opacity:0;pointer-events:none}.main{padding:14px;min-width:0;width:100%}}
+    @media (max-width:700px){.main{padding:12px}.grid-4{grid-template-columns:1fr 1fr;gap:10px}.hero h1{font-size:24px;line-height:1.12}.hero{padding:18px;border-radius:18px;margin-bottom:12px}.topbar{align-items:stretch;margin-bottom:14px}.topbar > div:last-child{width:100%}.topbar > div:last-child .btn{flex:1}.card{border-radius:16px;padding:14px}.section-title{flex-direction:column;align-items:flex-start}.actions{flex-direction:column}.actions .action-link,.actions .btn{width:100%;justify-content:center;text-align:center}.info-block{padding:12px}.sidebar{width:88vw;max-width:320px}.icon-btn{width:42px;height:42px}.metric-value{font-size:24px}.metric-sub{font-size:12px}}
+  </style>
+</head>
+<body>
+  <div class="shell collapsed" id="appShell">
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="/demo/assets/logo_horizontal_trans.png" alt="CHIRIPAPP" />
+        <small>Vista 360 del perfil para revisión, operación y seguimiento.</small>
+      </div>
+      <div class="nav-group">
+        <p class="nav-title">Principal</p>
+        <div class="nav-list">
+          <a class="nav-item" href="/demo/admin-dashboard.html">📊 Dashboard</a>
+        </div>
+      </div>
+      <div class="nav-group">
+        <p class="nav-title">Operaciones</p>
+        <div class="nav-list">
+          <a class="nav-item active" href="/demo/admin-chiriperos.html">👷 Chiriperos</a>
+          <a class="nav-item" href="/demo/admin-review.html">🛡️ Revisiones</a>
+          <a class="nav-item" href="/demo/admin-memberships.html">💳 Membresías</a>
+          <a class="nav-item muted" href="#">📣 Anuncios</a>
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <p class="nav-title">Resumen</p>
+        <div class="card" style="background:#f8fbfe;border-color:var(--line);box-shadow:none;color:#334155">
+          Vista 360 del caso: datos, documentos, membresía y trazabilidad.
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="topbar-left">
+          <button class="icon-btn" id="sidebarToggle" type="button" aria-label="Mostrar u ocultar menú">☰</button>
+          <div>
+            <div class="mini" style="font-weight:700;letter-spacing:.06em;text-transform:uppercase">CHIRIPAPP Admin</div>
+            <strong style="font-size:22px">Detalle del chiripero</strong>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <a class="btn btn-ghost" href="/demo/admin-chiriperos.html">Volver a Chiriperos</a>
+          <button class="btn btn-primary" type="button" onclick="loadDetail()">Actualizar</button>
+        </div>
+      </div>
+
+      <section class="hero">
+        <h1 id="heroName">Cargando perfil...</h1>
+        <p id="heroBio">Estamos cargando todos los datos del chiripero.</p>
+        <div class="hero-meta" id="heroBadges">
+          <span class="hero-pill">Cargando…</span>
+        </div>
+      </section>
+
+      <section class="grid-4">
+        <article class="card"><div class="metric-label">Rating</div><div class="metric-value" id="metricRating">—</div><div class="metric-sub" id="metricRatingSub">Sin data aún</div></article>
+        <article class="card"><div class="metric-label">WhatsApp taps</div><div class="metric-value" id="metricWa">—</div><div class="metric-sub">Interacciones registradas</div></article>
+        <article class="card"><div class="metric-label">Call taps</div><div class="metric-value" id="metricCall">—</div><div class="metric-sub">Llamadas registradas</div></article>
+        <article class="card"><div class="metric-label">Documentos</div><div class="metric-value" id="metricDocs">—</div><div class="metric-sub">Subidos al perfil</div></article>
+      </section>
+
+      <section class="grid-2">
+        <div class="stack">
+          <article class="card">
+            <div class="section-title"><h2>Resumen</h2><small class="muted">Datos base del perfil</small></div>
+            <div class="info-grid">
+              <div class="info-block"><div class="label">Nombre</div><div class="value" id="vName">—</div></div>
+              <div class="info-block"><div class="label">Cédula</div><div class="value" id="vCedula">—</div></div>
+              <div class="info-block"><div class="label">WhatsApp</div><div class="value" id="vWhatsapp">—</div></div>
+              <div class="info-block"><div class="label">Llamadas</div><div class="value" id="vCall">—</div></div>
+              <div class="info-block"><div class="label">Fecha de registro</div><div class="value" id="vCreated">—</div></div>
+              <div class="info-block"><div class="label">Última actualización</div><div class="value" id="vUpdated">—</div></div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="section-title"><h2>Servicios y zonas</h2><small class="muted">Cobertura y especialidades</small></div>
+            <div class="info-grid">
+              <div class="info-block">
+                <div class="label">Servicio principal</div>
+                <div class="value" id="vPrimaryService">—</div>
+              </div>
+              <div class="info-block">
+                <div class="label">Zonas</div>
+                <div class="zones" id="zonesWrap"></div>
+              </div>
+              <div class="info-block" style="grid-column:1/-1">
+                <div class="label">Todos los servicios</div>
+                <div class="chips" id="servicesWrap"></div>
+              </div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="section-title"><h2>Documentos</h2><small class="muted">Revisión y soporte</small></div>
+            <div id="documentsWrap"></div>
+          </article>
+        </div>
+
+        <div class="stack">
+          <article class="card">
+            <div class="section-title"><h2>Estatus</h2><small class="muted">Perfil + membresía</small></div>
+            <div class="info-grid">
+              <div class="info-block"><div class="label">Estado del perfil</div><div class="value" id="vProfileStatus">—</div></div>
+              <div class="info-block"><div class="label">Estado de documentos</div><div class="value" id="vDocsStatus">—</div></div>
+              <div class="info-block"><div class="label">Membresía</div><div class="value" id="vMembershipStatus">—</div></div>
+              <div class="info-block"><div class="label">Expiración</div><div class="value" id="vMembershipExp">—</div></div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="section-title"><h2>Acciones rápidas</h2><small class="muted">Atajos útiles</small></div>
+            <div class="actions" id="actionsWrap"></div>
+          </article>
+
+          <article class="card">
+            <div class="section-title"><h2>Timeline operativo</h2><small class="muted">Historial base del caso</small></div>
+            <div id="timelineWrap"></div>
+          </article>
+
+          <article class="card">
+            <div class="section-title"><h2>Notas internas</h2><small class="muted">Observaciones / trazabilidad</small></div>
+            <div id="notesWrap" class="value">—</div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+<script>
+  const shell = document.getElementById('appShell');
+  const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+  function syncSidebarMode(){ if (window.innerWidth > 900) shell.classList.remove('collapsed'); else shell.classList.add('collapsed'); }
+  document.getElementById('sidebarToggle')?.addEventListener('click', () => shell.classList.toggle('collapsed'));
+  sidebarBackdrop?.addEventListener('click', () => shell.classList.add('collapsed'));
+  window.addEventListener('resize', syncSidebarMode);
+  syncSidebarMode();
+  const id = new URLSearchParams(location.search).get('id');
+
+  function escapeHtml(v){ return String(v ?? '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s])); }
+  function formatDate(v){ try { return new Date(v).toLocaleString('es-DO', { dateStyle:'medium', timeStyle:'short' }); } catch { return '—'; } }
+  function badgeClass(value){ const v=String(value||'').toLowerCase(); if(['approved','active'].includes(v)) return v; if(['pending','in_review','review','grace'].includes(v)) return v; if(['rejected','inactive','expired','suspended'].includes(v)) return v; return 'default'; }
+  function badge(value){ return `<span class="badge ${badgeClass(value)}">${escapeHtml(value || '—')}</span>`; }
+  function setHtml(id, html){ const el=document.getElementById(id); if(el) el.innerHTML=html; }
+  function setText(id, value){ const el=document.getElementById(id); if(el) el.textContent=value; }
+
+  function renderTimeline(data){
+    const items = [
+      { title:'Perfil creado', time:data.created_at, desc:'Registro inicial del chiripero en la plataforma.' },
+      { title:'Última actualización', time:data.updated_at, desc:'Último cambio guardado en el perfil.' },
+      data.membership_expires_at ? { title:'Expiración de membresía', time:data.membership_expires_at, desc:'Fecha actual de vigencia del plan.' } : null,
+      ...(data.documents || []).slice(0,4).map(doc => ({ title:`Documento: ${doc.doc_type}`, time:doc.uploaded_at, desc:`Estado revisión: ${doc.review_status}` }))
+    ].filter(Boolean);
+
+    if (!items.length) {
+      setHtml('timelineWrap', '<div class="empty">No hay eventos todavía.</div>');
+      return;
+    }
+
+    setHtml('timelineWrap', `<div class="timeline">${items.map(item => `
+      <div class="time-item">
+        <div class="time-top"><strong>${escapeHtml(item.title)}</strong><span class="mini">${escapeHtml(formatDate(item.time))}</span></div>
+        <div class="mini" style="margin-top:6px">${escapeHtml(item.desc)}</div>
+      </div>
+    `).join('')}</div>`);
+  }
+
+  function docPreviewHtml(doc){
+    const url = String(doc.file_url || '');
+    const lower = url.toLowerCase();
+    if (/\.(png|jpg|jpeg|gif|webp)(\?|$)/.test(lower) || lower.startsWith('data:image/')) {
+      return `<div class="doc-preview"><img src="${escapeHtml(url)}" alt="${escapeHtml(doc.doc_type || 'documento')}" loading="lazy" /></div>`;
+    }
+    if (/\.pdf(\?|$)/.test(lower) || lower.startsWith('data:application/pdf')) {
+      return `<div class="doc-preview"><iframe src="${escapeHtml(url)}" title="${escapeHtml(doc.doc_type || 'PDF')}"></iframe></div>`;
+    }
+    return '<div class="doc-preview"><div class="doc-preview-empty">Vista previa no disponible para este archivo.</div></div>';
+  }
+
+  function renderDocuments(docs){
+    if (!docs.length) {
+      setHtml('documentsWrap', '<div class="empty">Este perfil no tiene documentos cargados.</div>');
+      return;
+    }
+    setHtml('documentsWrap', `<div class="doc-list">${docs.map(doc => `
+      <div class="doc-item">
+        <div class="doc-top">
+          <div>
+            <strong>${escapeHtml(doc.doc_type)}</strong>
+            <div class="mini">Subido: ${escapeHtml(formatDate(doc.uploaded_at))}</div>
+          </div>
+          ${badge(doc.review_status)}
+        </div>
+        <div class="mini" style="margin-top:8px">${escapeHtml(doc.review_notes || 'Sin nota de revisión.')}</div>
+        ${docPreviewHtml(doc)}
+        <div class="actions" style="margin-top:10px"><a class="action-link" href="${escapeHtml(doc.file_url)}" target="_blank" rel="noopener">Abrir archivo</a></div>
+      </div>
+    `).join('')}</div>`);
+  }
+
+  async function loadDetail(){
+    if (!id) {
+      document.getElementById('heroName').textContent = 'Falta el ID del chiripero';
+      document.getElementById('heroBio').textContent = 'Abre esta pantalla desde el listado de chiriperos.';
+      return;
+    }
+    try {
+      const data = await fetch('/admin/chiriperos/' + encodeURIComponent(id)).then(r => r.json());
+      if (data.error) throw new Error(data.error);
+
+      document.title = `${data.display_name} | CHIRIPAPP Admin`;
+      setText('heroName', data.display_name || 'Sin nombre');
+      setText('heroBio', data.bio || 'Sin bio registrada.');
+      setHtml('heroBadges', `${badge(data.status)} ${badge(data.membership_status)} ${badge(data.documents_status)} <span class="hero-pill">${escapeHtml(data.primary_service || 'Servicio general')}</span>`);
+
+      setText('metricRating', Number(data.rating_avg || 0).toFixed(2));
+      setText('metricRatingSub', `Con ${data.rating_count || 0} valoración(es)`);
+      setText('metricWa', String(data.whatsapp_taps ?? 0));
+      setText('metricCall', String(data.call_taps ?? 0));
+      setText('metricDocs', String((data.documents || []).length));
+
+      setText('vName', data.display_name || '—');
+      setText('vCedula', data.cedula_number || 'No registrada');
+      setText('vWhatsapp', data.whatsapp_number || '—');
+      setText('vCall', data.call_number || '—');
+      setText('vCreated', formatDate(data.created_at));
+      setText('vUpdated', formatDate(data.updated_at));
+      setText('vPrimaryService', data.primary_service || 'Servicio general');
+      setHtml('zonesWrap', (data.zones || []).length ? data.zones.map(z => `<span class="chip">${escapeHtml(z.name)}</span>`).join('') : '<span class="mini">Sin zonas</span>');
+      setHtml('servicesWrap', (data.services || []).length ? data.services.map(s => `<span class="chip">${escapeHtml(s.name)}</span>`).join('') : '<span class="mini">Sin servicios</span>');
+      setHtml('vProfileStatus', badge(data.status));
+      setHtml('vDocsStatus', badge(data.documents_status));
+      setHtml('vMembershipStatus', badge(data.membership_status));
+      setText('vMembershipExp', data.membership_expires_at ? formatDate(data.membership_expires_at) : 'Sin expiración definida');
+      renderDocuments(data.documents || []);
+      renderTimeline(data);
+      setHtml('notesWrap', escapeHtml(data.verification_notes || 'Sin notas internas todavía.'));
+      setHtml('actionsWrap', `
+        <a class="action-link" href="/demo/admin-review.html">Abrir revisiones</a>
+        <a class="action-link" href="/demo/profile.html?id=${encodeURIComponent(data.id)}" target="_blank" rel="noopener">Ver perfil público</a>
+        <a class="action-link" href="https://wa.me/1${encodeURIComponent(data.whatsapp_number || '')}" target="_blank" rel="noopener">WhatsApp</a>
+        <a class="action-link" href="tel:${escapeHtml(data.call_number || '')}">Llamar</a>
+      `);
+    } catch (e) {
+      setText('heroName', 'No pude cargar el chiripero');
+      setText('heroBio', e.message || 'Error desconocido');
+    }
+  }
+
+  loadDetail();
+</script>
+</body>
+</html>

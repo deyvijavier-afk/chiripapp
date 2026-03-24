@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CHIRIPAPP Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f4f9fd;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#475569;
+      --brand:#1ea4de;
+      --brand2:#177fbf;
+      --line:#dbe8f2;
+      --ok:#16a34a;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    }
+    .container{max-width:1120px;margin:0 auto;padding:20px}
+    .topbar{position:sticky;top:0;z-index:120;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;padding:8px 0;background:rgba(244,249,253,.92);backdrop-filter:blur(6px);transition:padding .18s ease, background .18s ease, box-shadow .18s ease}
+    .topbar.shrink{padding:2px 0;background:rgba(244,249,253,.98);box-shadow:0 6px 16px rgba(15,23,42,.08)}
+    .logo-wrap{display:flex;align-items:center;gap:12px}
+    .logo-img{height:144px;width:auto;max-width:840px;object-fit:contain;background:transparent;transition:height .18s ease, transform .18s ease}
+    .topbar.shrink .logo-img{height:86px}
+    .logo{display:none}
+    .logo span{color:var(--brand)}
+    .pill{display:none}
+
+    .hero{
+      background:linear-gradient(135deg,var(--brand),var(--brand2));
+      color:#fff;border-radius:20px;padding:26px 24px;margin-bottom:16px;
+      box-shadow:0 18px 40px rgba(109,40,217,.25);
+    }
+    .hero h1{margin:0 0 6px;font-size:30px;line-height:1.05}
+    .hero p{margin:0;opacity:.92}
+
+    .quick-cats{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .cat-chip{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);color:#fff;padding:8px 11px;border-radius:999px;font-size:12px;cursor:pointer}
+    .cat-chip.active{background:#fff;color:#0f172a;border-color:#fff}
+
+    .search{
+      margin-top:12px;
+      background:#fff;
+      border-radius:16px;
+      padding:10px;
+      display:grid;
+      grid-template-columns:1.2fr 1fr 1fr auto;
+      gap:8px;
+      box-shadow:0 8px 24px rgba(2,6,23,.15);
+    }
+    .search input,.search select,.search button{
+      width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);font-size:14px
+    }
+    .search button{
+      background:var(--text);color:#fff;border:none;font-weight:700;cursor:pointer;padding:0 20px
+    }
+
+    .meta{display:flex;align-items:center;justify-content:space-between;margin:18px 2px 10px;gap:8px;flex-wrap:wrap}
+    .meta h2{font-size:17px;margin:0}
+    .meta small{color:var(--muted)}
+    .meta-tools{display:flex;gap:8px;align-items:center}
+    .ghost-btn{border:1px solid #dbe8f2;background:#fff;border-radius:999px;padding:7px 11px;font-size:12px;cursor:pointer}
+    .ghost-btn.active{background:#0f172a;color:#fff;border-color:#0f172a}
+
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:10px;
+      box-shadow:0 2px 8px rgba(15,23,42,.05);
+      cursor:pointer;
+      transition:transform .12s ease, box-shadow .12s ease;
+      overflow:hidden;
+    }
+    .card:hover{transform:translateY(-2px);box-shadow:0 10px 20px rgba(15,23,42,.10)}
+    .thumb-wrap{position:relative;height:150px;border-radius:12px;overflow:hidden;background:#eaf4fb}
+    .thumb{width:100%;height:100%;object-fit:cover;display:block}
+    .thumb-badge{position:absolute;bottom:8px;right:8px;background:rgba(255,255,255,.92);border:1px solid #dbe8f2;border-radius:999px;padding:4px 8px;font-size:11px;color:#334155}
+    .fav-btn{position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:999px;border:1px solid #dbe8f2;background:rgba(255,255,255,.92);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+    .fav-btn.active{background:#fee2e2;border-color:#fecaca}
+    .content{padding:10px 4px 4px}
+    .name{font-size:17px;font-weight:700;margin-bottom:4px}
+    .bio{font-size:13px;color:var(--muted);min-height:38px}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px}
+    .rating{font-size:13px;color:#334155;font-weight:600}
+    .tag{font-size:12px;border:1px solid #d1fae5;background:#ecfdf5;color:var(--ok);padding:5px 8px;border-radius:999px}
+    .actions{display:flex;gap:8px;margin-top:12px}
+    .btn{flex:1;text-align:center;text-decoration:none;padding:10px;border-radius:10px;font-size:13px;font-weight:700}
+    .btn-wa{background:#25d366;color:#062b13}
+    .btn-call{background:#0f172a;color:#fff}
+
+    .empty{background:#fff;border:1px dashed #cbd5e1;border-radius:12px;padding:20px;text-align:center;color:#64748b}
+
+    .modal-backdrop{position:fixed;inset:0;background:rgba(2,6,23,.0);display:flex;align-items:center;justify-content:center;z-index:9999;padding:16px;opacity:0;pointer-events:none;transition:opacity .2s ease, background .2s ease}
+    .modal-backdrop.open{opacity:1;pointer-events:auto;background:rgba(2,6,23,.58)}
+    .modal-card{width:min(940px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:16px;border:1px solid #dbe8f2;box-shadow:0 20px 60px rgba(2,6,23,.35);transform:translateY(18px) scale(.98);transition:transform .22s ease}
+    .modal-backdrop.open .modal-card{transform:translateY(0) scale(1)}
+    .modal-cover{height:220px;background:#e2e8f0}
+    .modal-cover img{width:100%;height:100%;object-fit:cover;display:block}
+    .modal-body{padding:16px}
+    .modal-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+    .xbtn{border:1px solid #dbe8f2;background:#fff;border-radius:10px;padding:8px 10px;cursor:pointer}
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+    .chip{padding:6px 10px;border-radius:999px;background:#f1f5f9;border:1px solid #e2e8f0;font-size:12px;color:#334155}
+    .cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+    .box{border:1px solid #e2e8f0;border-radius:12px;padding:12px}
+    @media(max-width:720px){.cols{grid-template-columns:1fr}}
+
+    @media (max-width:980px){
+      .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .search{grid-template-columns:1fr 1fr}
+    }
+    .footer-note{margin:26px 0 8px;text-align:center;color:#64748b;font-size:13px}
+
+    @media (max-width:640px){
+      .topbar{justify-content:center}
+      .grid{grid-template-columns:1fr}
+      .hero h1{font-size:24px}
+      .search{grid-template-columns:1fr}
+      .search button{min-height:54px;padding:14px 20px;font-size:16px}
+      .container{padding:14px}
+      .logo-img{height:112px;max-width:560px}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <div class="logo-wrap">
+        <img class="logo-img" src="/demo/assets/logo_horizontal_trans.png" alt="CHIRIPAPP logo horizontal sin fondo" />
+        <div class="logo">CHIRIP<span>APP</span></div>
+      </div>
+      <div class="pill">Santo Domingo · Demo MVP</div>
+    </div>
+
+    <section class="hero">
+      <h1>Contrata chiriperos confiables en minutos</h1>
+      <p>Encuentra técnicos y servicios cerca de ti. Contacto directo por WhatsApp o llamada.</p>
+
+      <div id="quickCats" class="quick-cats"></div>
+
+      <div class="search">
+        <input id="q" placeholder="¿Qué necesitas? Ej: plomero, pintura, limpieza..." />
+        <select id="subcategory"><option value="">Servicio (todos)</option></select>
+        <select id="zone"><option value="">Zona (todas)</option></select>
+        <button onclick="loadChiriperos()">Buscar</button>
+      </div>
+    </section>
+
+    <div class="meta">
+      <h2>Profesionales disponibles</h2>
+      <div class="meta-tools">
+        <button id="favFilter" class="ghost-btn" type="button">⭐ Solo favoritos</button>
+        <small id="count">0 resultados</small>
+      </div>
+    </div>
+
+    <div id="list" class="grid"></div>
+    <div class="footer-note">Desarrollado por Jarvis</div>
+  </div>
+
+  <div id="modal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true">
+      <div class="modal-cover"><img id="mCover" alt="cover" /></div>
+      <div class="modal-body">
+        <div class="modal-top">
+          <div>
+            <h2 id="mName" style="margin:0 0 6px"></h2>
+            <div id="mBio" style="color:#475569"></div>
+          </div>
+          <button class="xbtn" id="mClose">Cerrar ✕</button>
+        </div>
+
+        <div class="chips" id="mChips"></div>
+
+        <div class="actions">
+          <a id="mWa" class="btn btn-wa" target="_blank" rel="noopener">WhatsApp</a>
+          <a id="mCall" class="btn btn-call">Llamar</a>
+        </div>
+
+        <div class="cols">
+          <div class="box"><strong>Servicios</strong><ul id="mServices"></ul></div>
+          <div class="box"><strong>Zonas</strong><ul id="mZones"></ul></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const api = '';
+
+async function init(){
+  const [cats, zones] = await Promise.all([
+    fetch(api + '/categorias').then(r=>r.json()),
+    fetch(api + '/zonas').then(r=>r.json())
+  ]);
+
+  const subSel = document.getElementById('subcategory');
+  const allSub = [];
+  cats.forEach(c => c.subcategories.forEach(s => {
+    const op = document.createElement('option');
+    op.value = s.id;
+    op.textContent = `${s.name}`;
+    subSel.appendChild(op);
+    allSub.push(s);
+  }));
+
+  const quickCats = document.getElementById('quickCats');
+  const featured = ['Plomero','Electricista','Servicio de limpieza','Técnico A/C','Pintor','Cerrajero'];
+  featured.forEach(name => {
+    const match = allSub.find(s => s.name.toLowerCase() === name.toLowerCase());
+    if (!match) return;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'cat-chip';
+    b.textContent = name;
+    b.addEventListener('click', () => {
+      const isSame = subSel.value === match.id;
+      subSel.value = isSame ? '' : match.id;
+      [...quickCats.querySelectorAll('.cat-chip')].forEach(x => x.classList.remove('active'));
+      if (!isSame) b.classList.add('active');
+      loadChiriperos();
+    });
+    quickCats.appendChild(b);
+  });
+
+  const zoneSel = document.getElementById('zone');
+  zones.forEach(z => {
+    const op = document.createElement('option');
+    op.value = z.id;
+    op.textContent = z.name;
+    zoneSel.appendChild(op);
+  });
+
+  const qInput = document.getElementById('q');
+  qInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      loadChiriperos();
+    }
+  });
+
+  subSel.addEventListener('change', () => {
+    [...quickCats.querySelectorAll('.cat-chip')].forEach(btn => {
+      const target = allSub.find(s => s.name === btn.textContent);
+      btn.classList.toggle('active', !!target && target.id === subSel.value);
+    });
+  });
+
+  loadChiriperos();
+}
+
+function serviceArt(service){
+  const s = (service || '').toLowerCase();
+
+  // Fotos estáticas (Unsplash CDN) más confiables que source.unsplash.com
+  if (s.includes('piscina') || s.includes('cisterna')) return '/demo/assets/services/cisterna-piscina.jpg';
+  if (s.includes('septic')) return '/demo/assets/services/septicos.png';
+  if (s.includes('limpieza')) return '/demo/assets/services/limpieza.png';
+  if (s.includes('plomer')) return '/demo/assets/services/plomero.png';
+  if (s.includes('electric')) return '/demo/assets/services/electricista.png';
+  if (s.includes('pintor')) return '/demo/assets/services/pintor.png';
+  if (s.includes('albañ') || s.includes('alba')) return '/demo/assets/services/albanil.jpg';
+  if (s.includes('a/c') || s.includes('aire')) return '/demo/assets/services/tecnico-ac.jpg';
+  if (s.includes('gomero')) return '/demo/assets/services/gomero.png';
+  if (s.includes('chofer')) return '/demo/assets/services/chofer.jpg';
+  if (s.includes('cerraj')) return '/demo/assets/services/cerrajero.jpg';
+  if (s.includes('inform')) return '/demo/assets/services/tecnico-informatico.jpg';
+
+  return '/demo/assets/logo_horizontal_trans.png';
+}
+
+const modal = document.getElementById('modal');
+const mClose = document.getElementById('mClose');
+const favFilterBtn = document.getElementById('favFilter');
+const topbar = document.querySelector('.topbar');
+let onlyFavorites = false;
+
+const FAV_KEY = 'chiripapp_favorites_v1';
+function getFavs(){
+  try { return JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); } catch { return []; }
+}
+function setFavs(arr){ localStorage.setItem(FAV_KEY, JSON.stringify(arr)); }
+function isFav(id){ return getFavs().includes(id); }
+function toggleFav(id){
+  const set = new Set(getFavs());
+  if(set.has(id)) set.delete(id); else set.add(id);
+  setFavs([...set]);
+}
+
+async function openProfileModal(id){
+  const x = await fetch('/chiriperos/' + id).then(r => r.json());
+  const primaryService = (x.services && x.services[0] && x.services[0].name) ? x.services[0].name : 'Servicio general';
+
+  document.getElementById('mCover').src = serviceArt(primaryService);
+  document.getElementById('mName').textContent = x.display_name;
+  document.getElementById('mBio').textContent = x.bio || 'Sin descripción';
+  document.getElementById('mChips').innerHTML = `
+    <span class="chip">⭐ ${x.rating_avg} (${x.rating_count})</span>
+    <span class="chip">${primaryService}</span>
+    <span class="chip">Membresía: ${x.membership_status}</span>
+  `;
+
+  const wa = document.getElementById('mWa');
+  const call = document.getElementById('mCall');
+  wa.href = `https://wa.me/1${x.whatsapp_number}`;
+  call.href = `tel:${x.call_number}`;
+
+  document.getElementById('mServices').innerHTML = (x.services||[]).map(s=>`<li>${s.name}</li>`).join('') || '<li>No definido</li>';
+  document.getElementById('mZones').innerHTML = (x.zones||[]).map(z=>`<li>${z.name}</li>`).join('') || '<li>No definido</li>';
+
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden','false');
+}
+
+function closeModal(){
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden','true');
+}
+
+mClose.addEventListener('click', closeModal);
+modal.addEventListener('click', (e)=>{
+  if(e.target === modal) closeModal();
+});
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape') closeModal();
+});
+
+window.addEventListener('scroll', () => {
+  if (!topbar) return;
+  topbar.classList.toggle('shrink', window.scrollY > 24);
+}, { passive: true });
+
+favFilterBtn.addEventListener('click', () => {
+  onlyFavorites = !onlyFavorites;
+  favFilterBtn.classList.toggle('active', onlyFavorites);
+  favFilterBtn.textContent = onlyFavorites ? '⭐ Mostrando favoritos' : '⭐ Solo favoritos';
+  loadChiriperos();
+});
+
+async function loadChiriperos(){
+  const subcategory_id = document.getElementById('subcategory').value;
+  const zone_id = document.getElementById('zone').value;
+  const q = document.getElementById('q').value.trim();
+
+  const p = new URLSearchParams();
+  if (subcategory_id) p.set('subcategory_id', subcategory_id);
+  if (zone_id) p.set('zone_id', zone_id);
+  if (q) p.set('q', q);
+
+  let data = await fetch(api + '/chiriperos?' + p.toString()).then(r=>r.json());
+  if (onlyFavorites) {
+    const favs = new Set(getFavs());
+    data = data.filter(x => favs.has(x.id));
+  }
+  const list = document.getElementById('list');
+  const count = document.getElementById('count');
+  count.textContent = `${data.length} resultado${data.length===1?'':'s'}`;
+
+  list.innerHTML = '';
+
+  if (!data.length){
+    list.className = '';
+    list.innerHTML = '<div class="empty">No encontramos resultados con esos filtros.</div>';
+    return;
+  }
+
+  list.className = 'grid';
+  data.forEach(x => {
+    const el = document.createElement('article');
+    el.className = 'card';
+    el.setAttribute('data-id', x.id);
+    const img = serviceArt(x.primary_service);
+    const fav = isFav(x.id);
+    el.innerHTML = `
+      <div class="thumb-wrap">
+        <img class="thumb" src="${img}" alt="Foto de ${x.display_name}" loading="lazy" />
+        <button class="fav-btn ${fav ? 'active' : ''}" data-fav-id="${x.id}" title="Favorito">${fav ? '❤️' : '🤍'}</button>
+        <span class="thumb-badge">${x.primary_service || 'Servicio'}</span>
+      </div>
+      <div class="content">
+        <div class="name">${x.display_name}</div>
+        <div class="bio">${x.bio || 'Sin descripción.'}</div>
+        <div class="row">
+          <div class="rating">⭐ ${x.rating_avg} (${x.rating_count})</div>
+          <div class="tag">Disponible</div>
+        </div>
+        <div class="actions">
+          <a class="btn btn-wa" href="https://wa.me/1${x.whatsapp_number}" target="_blank" rel="noopener">WhatsApp</a>
+          <a class="btn btn-call" href="tel:${x.call_number}">Llamar</a>
+        </div>
+      </div>
+    `;
+    el.addEventListener('click', (ev) => {
+      if (ev.target.closest('a')) return;
+
+      const favBtn = ev.target.closest('[data-fav-id]');
+      if (favBtn) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        toggleFav(x.id);
+        loadChiriperos();
+        return;
+      }
+
+      openProfileModal(x.id);
+    });
+    list.appendChild(el);
+  });
+}
+
+init();
+</script>
+</body>
+</html>

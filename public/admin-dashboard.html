@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Admin | CHIRIPAPP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f4f9fd;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#475569;
+      --brand:#1ea4de;
+      --brand2:#177fbf;
+      --line:#dbe8f2;
+      --ok:#16a34a;
+      --warn:#b45309;
+      --danger:#dc2626;
+      --blue-soft:#e0f2fe;
+      --green-soft:#ecfdf5;
+      --amber-soft:#fff7ed;
+      --red-soft:#fef2f2;
+      --shadow:0 18px 40px rgba(15,23,42,.08);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial;overflow-x:hidden}
+    .shell{display:grid;grid-template-columns:280px 1fr;min-height:100vh;transition:grid-template-columns .2s ease}
+    .shell.collapsed{grid-template-columns:0 1fr}
+    .sidebar-backdrop{display:none}
+    .sidebar{background:#ffffff;color:#0f172a;padding:22px 18px;position:sticky;top:0;height:100vh;overflow:auto;transition:transform .22s ease,opacity .22s ease;border-right:1px solid var(--line);box-shadow:0 10px 30px rgba(15,23,42,.05)}
+    .shell.collapsed .sidebar{transform:translateX(-100%);opacity:0;pointer-events:none}
+    .brand{display:flex;flex-direction:column;gap:10px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+    .brand img{width:180px;max-width:100%;object-fit:contain;filter:none}
+    .brand small{color:#64748b;line-height:1.45}
+    .nav-group{margin-top:20px}
+    .nav-title{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8;margin:0 0 10px 10px}
+    .nav-list{display:flex;flex-direction:column;gap:6px}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:14px;color:#334155;text-decoration:none;font-size:14px;font-weight:600}
+    .nav-item.active{background:linear-gradient(135deg,#e0f2fe,#dbeafe);color:#075985;border:1px solid #bae6fd}
+    .nav-item.muted{opacity:.76}
+
+    .main{padding:22px}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+    .topbar-left{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .topbar-actions{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{border:none;border-radius:14px;padding:11px 14px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+    .icon-btn{width:46px;height:46px;padding:0;background:#fff;color:var(--text);border:1px solid var(--line);border-radius:14px;font-size:18px;font-weight:800;cursor:pointer}
+    .btn-primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;box-shadow:0 10px 24px rgba(23,127,191,.22)}
+    .btn-ghost{background:#fff;color:var(--text);border:1px solid var(--line)}
+
+    .hero{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-radius:24px;padding:24px;box-shadow:0 18px 40px rgba(23,127,191,.24);margin-bottom:16px}
+    .hero h1{margin:0 0 8px;font-size:31px;line-height:1.04}
+    .hero p{margin:0;opacity:.95;max-width:780px}
+    .hero-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+    .hero-pill{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.26);border-radius:999px;padding:8px 12px;font-size:12px;font-weight:600}
+
+    .grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:14px}
+    .grid-2{display:grid;grid-template-columns:1.2fr .8fr;gap:12px;margin-top:12px}
+    .grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 2px 8px rgba(15,23,42,.05)}
+    .metric-card{position:relative;overflow:hidden}
+    .metric-card::after{content:'';position:absolute;right:-18px;top:-18px;width:70px;height:70px;background:linear-gradient(135deg,rgba(30,164,222,.10),rgba(23,127,191,.02));border-radius:999px}
+    .metric-label{font-size:12px;color:#64748b;margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+    .metric-value{font-size:32px;font-weight:800;line-height:1;color:#0f172a}
+    .metric-sub{margin-top:8px;font-size:13px;color:#475569}
+
+    .section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+    .section-title h2{margin:0;font-size:18px}
+    .section-title small{color:#64748b}
+
+    .alert-list,.queue-list,.rank-list,.actions-list{display:flex;flex-direction:column;gap:10px}
+    .alert-item,.queue-item,.rank-item,.action-item{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}
+    .alert-item{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+    .alert-item.warn{background:var(--amber-soft)}
+    .alert-item.danger{background:var(--red-soft)}
+    .alert-item.ok{background:var(--green-soft)}
+    .alert-main{display:flex;flex-direction:column;gap:5px}
+    .badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700}
+    .badge.warn{background:#ffedd5;color:#9a3412}
+    .badge.danger{background:#fee2e2;color:#b91c1c}
+    .badge.ok{background:#dcfce7;color:#166534}
+    .badge.info{background:#e0f2fe;color:#075985}
+
+    .funnel{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+    .funnel-step{padding:12px;border-radius:16px;background:#f8fbfe;border:1px solid var(--line);text-align:center}
+    .funnel-step .num{font-size:28px;font-weight:800;color:#0f172a;line-height:1;margin-bottom:6px}
+    .funnel-step .lbl{font-size:12px;color:#64748b;font-weight:700;text-transform:uppercase}
+
+    .queue-item,.rank-item{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+    .queue-meta,.rank-meta{display:flex;flex-direction:column;gap:5px}
+    .rank-bar{height:8px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin-top:4px}
+    .rank-fill{height:100%;background:linear-gradient(135deg,var(--brand),var(--brand2));border-radius:999px}
+
+    .actions-list{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .action-item{text-decoration:none;color:var(--text);background:#f8fbfe}
+    .action-item strong{display:block;margin-bottom:4px}
+    .action-item small{color:#64748b;line-height:1.45}
+
+    .muted{color:#64748b}
+    .empty{border:1px dashed #cbd5e1;border-radius:14px;padding:16px;text-align:center;color:#64748b;background:#fff}
+
+    @media (max-width:1180px){
+      .grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .grid-3{grid-template-columns:1fr}
+      .grid-2{grid-template-columns:1fr}
+    }
+    @media (max-width:900px){
+      .shell,.shell.collapsed{grid-template-columns:1fr}
+      .sidebar{position:fixed;left:0;width:280px;z-index:30}
+      .shell.collapsed .sidebar{transform:translateX(-100%)}
+      .sidebar-backdrop{display:block;position:fixed;inset:0;background:rgba(15,23,42,.38);z-index:25;opacity:1;transition:opacity .2s ease}
+      .shell.collapsed + .sidebar-backdrop{opacity:0;pointer-events:none}
+      .main{padding:14px;min-width:0;width:100%}
+    }
+    @media (max-width:700px){
+      .main{padding:12px}
+      .topbar{align-items:stretch;margin-bottom:14px}
+      .topbar-left{align-items:center}
+      .topbar-actions{width:100%}
+      .topbar-actions .btn{flex:1}
+      .hero{padding:18px;border-radius:18px;margin-bottom:12px}
+      .hero h1{font-size:24px;line-height:1.12}
+      .hero-meta{gap:6px}
+      .hero-pill{padding:7px 10px;font-size:11px}
+      .grid-4{grid-template-columns:1fr 1fr;gap:10px}
+      .grid-2,.grid-3{grid-template-columns:1fr;gap:10px}
+      .funnel{grid-template-columns:1fr 1fr;gap:8px}
+      .actions-list{grid-template-columns:1fr}
+      .card{padding:14px;border-radius:16px}
+      .metric-value{font-size:24px}
+      .metric-sub{font-size:12px}
+      .sidebar{width:88vw;max-width:320px}
+      .icon-btn{width:42px;height:42px}
+    }
+  </style>
+</head>
+<body>
+  <div class="shell collapsed" id="appShell">
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="/demo/assets/logo_horizontal_trans.png" alt="CHIRIPAPP" />
+        <small>Backoffice operativo de marketplace + moderación + membresías.</small>
+      </div>
+
+      <div class="nav-group">
+        <p class="nav-title">Principal</p>
+        <div class="nav-list">
+          <a class="nav-item active" href="/demo/admin-dashboard.html">📊 Dashboard</a>
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <p class="nav-title">Operaciones</p>
+        <div class="nav-list">
+          <a class="nav-item" href="/demo/admin-chiriperos.html">👷 Chiriperos</a>
+          <a class="nav-item" href="/demo/admin-review.html">🛡️ Revisiones</a>
+          <a class="nav-item" href="/demo/admin-memberships.html">💳 Membresías</a>
+          <a class="nav-item muted" href="#">📣 Anuncios</a>
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <p class="nav-title">Resumen</p>
+        <div class="card" style="background:#f8fbfe;border-color:var(--line);box-shadow:none;color:#334155">
+          Vista rápida del negocio, pendientes y señales del funnel.
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="topbar-left">
+          <button class="icon-btn" id="sidebarToggle" type="button" aria-label="Mostrar u ocultar menú">☰</button>
+          <div>
+            <div class="muted" style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase">CHIRIPAPP Admin</div>
+            <strong style="font-size:22px">Dashboard operativo</strong>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <a class="btn btn-ghost" href="/demo/admin-review.html">Abrir revisiones</a>
+          <button class="btn btn-primary" type="button" onclick="loadDashboard()">Actualizar</button>
+        </div>
+      </div>
+
+      <section class="hero">
+        <h1>Lo importante primero: qué está pendiente y dónde hay que meter mano</h1>
+        <p>Este dashboard prioriza operación real: pendientes, membresías, señales del funnel y los chiriperos más visibles de la plataforma.</p>
+        <div class="hero-meta">
+          <span class="hero-pill" id="heroStatus">Cargando dashboard...</span>
+          <span class="hero-pill">Primera pantalla v1</span>
+          <span class="hero-pill">Línea gráfica CHIRIPAPP</span>
+        </div>
+      </section>
+
+      <section class="grid-4">
+        <article class="card metric-card">
+          <div class="metric-label">Chiriperos publicados</div>
+          <div class="metric-value" id="metricPublished">—</div>
+          <div class="metric-sub">Perfiles visibles ahora mismo</div>
+        </article>
+        <article class="card metric-card">
+          <div class="metric-label">Perfiles pendientes</div>
+          <div class="metric-value" id="metricPendingProfiles">—</div>
+          <div class="metric-sub">Pendientes de revisión del equipo</div>
+        </article>
+        <article class="card metric-card">
+          <div class="metric-label">Pagos por revisar</div>
+          <div class="metric-value" id="metricPendingMemberships">—</div>
+          <div class="metric-sub">Membresías esperando decisión</div>
+        </article>
+        <article class="card metric-card">
+          <div class="metric-label">Categorías activas</div>
+          <div class="metric-value" id="metricCategories">—</div>
+          <div class="metric-sub">Base actual del catálogo</div>
+        </article>
+      </section>
+
+      <section class="grid-2">
+        <article class="card">
+          <div class="section-title">
+            <h2>Alertas operativas</h2>
+            <small>Acción rápida antes de seguir</small>
+          </div>
+          <div class="alert-list" id="alertsList"></div>
+        </article>
+
+        <article class="card">
+          <div class="section-title">
+            <h2>Funnel simple</h2>
+            <small>Lectura rápida del embudo actual</small>
+          </div>
+          <div class="funnel" id="funnelGrid"></div>
+        </article>
+      </section>
+
+      <section class="grid-3">
+        <article class="card">
+          <div class="section-title">
+            <h2>Cola de revisiones</h2>
+            <small>Primeros casos en espera</small>
+          </div>
+          <div id="reviewQueue"></div>
+        </article>
+
+        <article class="card">
+          <div class="section-title">
+            <h2>Top servicios visibles</h2>
+            <small>Basado en perfiles publicados</small>
+          </div>
+          <div id="topServices"></div>
+        </article>
+
+        <article class="card">
+          <div class="section-title">
+            <h2>Acciones rápidas</h2>
+            <small>Atajos operativos</small>
+          </div>
+          <div class="actions-list">
+            <a class="action-item" href="/demo/admin-review.html">
+              <strong>Revisar pendientes</strong>
+              <small>Entrar directo a la cola de aprobación/rechazo.</small>
+            </a>
+            <a class="action-item" href="#" onclick="scrollToMemberships(event)">
+              <strong>Validar pagos</strong>
+              <small>Ir al bloque de membresías pendientes en esta pantalla.</small>
+            </a>
+            <a class="action-item" href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">
+              <strong>Volver arriba</strong>
+              <small>Subir rápido al resumen y refrescar lectura.</small>
+            </a>
+            <a class="action-item" href="/demo/">
+              <strong>Ver marketplace</strong>
+              <small>Abrir el demo público para validar lo visible al cliente.</small>
+            </a>
+          </div>
+        </article>
+      </section>
+
+      <section class="grid-2" style="margin-top:12px">
+        <article class="card" id="membershipAnchor">
+          <div class="section-title">
+            <h2>Membresías pendientes</h2>
+            <small>Últimos pagos enviados</small>
+          </div>
+          <div id="membershipQueue"></div>
+        </article>
+
+        <article class="card">
+          <div class="section-title">
+            <h2>Estado del dashboard</h2>
+            <small>Notas de esta versión</small>
+          </div>
+          <div class="alert-list">
+            <div class="alert-item ok">
+              <div class="alert-main">
+                <strong>Primera pantalla montada</strong>
+                <span class="muted">Ya usable desde fuera vía túnel temporal.</span>
+              </div>
+              <span class="badge ok">v1</span>
+            </div>
+            <div class="alert-item warn">
+              <div class="alert-main">
+                <strong>Próximo paso sugerido</strong>
+                <span class="muted">Conectar listado de chiriperos y módulo de membresías full.</span>
+              </div>
+              <span class="badge warn">siguiente</span>
+            </div>
+            <div class="alert-item">
+              <div class="alert-main">
+                <strong>Línea gráfica preservada</strong>
+                <span class="muted">Misma paleta, tipografía y tono visual de los otros módulos.</span>
+              </div>
+              <span class="badge info">consistente</span>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <script>
+    const shell = document.getElementById('appShell');
+    const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+    function syncSidebarMode(){ if (window.innerWidth > 900) shell.classList.remove('collapsed'); else shell.classList.add('collapsed'); }
+    document.getElementById('sidebarToggle')?.addEventListener('click', () => shell.classList.toggle('collapsed'));
+    sidebarBackdrop?.addEventListener('click', () => shell.classList.add('collapsed'));
+    window.addEventListener('resize', syncSidebarMode);
+    syncSidebarMode();
+
+    function setText(id, value){
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
+    }
+
+    function escapeHtml(v){
+      return String(v ?? '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+    }
+
+    function prettyDate(value){
+      try {
+        return new Date(value).toLocaleString('es-DO', { dateStyle:'medium', timeStyle:'short' });
+      } catch {
+        return '—';
+      }
+    }
+
+    function aggregateTopServices(chiriperos){
+      const map = new Map();
+      (chiriperos || []).forEach(item => {
+        const key = item.primary_service || 'Sin categoría principal';
+        map.set(key, (map.get(key) || 0) + 1);
+      });
+      return [...map.entries()]
+        .sort((a,b) => b[1] - a[1])
+        .slice(0,5)
+        .map(([name, count]) => ({ name, count }));
+    }
+
+    function renderAlerts({ pendingProfiles, pendingMemberships, published }){
+      const alerts = [];
+      if (pendingMemberships.length) alerts.push({ kind:'danger', title:`${pendingMemberships.length} pago(s) sin revisar`, text:'Conviene decidirlos primero para no frenar publicación ni renovación.' });
+      if (pendingProfiles.length) alerts.push({ kind:'warn', title:`${pendingProfiles.length} perfil(es) pendientes`, text:'Hay chiriperos esperando revisión documental o validación.' });
+      if (!published.length) alerts.push({ kind:'warn', title:'No hay perfiles visibles', text:'El marketplace no está mostrando chiriperos activos en este momento.' });
+      if (published.length) alerts.push({ kind:'ok', title:`${published.length} perfil(es) visibles`, text:'Ya hay oferta publicada y lista para recibir contactos.' });
+
+      const wrap = document.getElementById('alertsList');
+      if (!alerts.length) {
+        wrap.innerHTML = '<div class="empty">No hay alertas ahora mismo.</div>';
+        return;
+      }
+      wrap.innerHTML = alerts.map(a => `
+        <div class="alert-item ${a.kind}">
+          <div class="alert-main">
+            <strong>${escapeHtml(a.title)}</strong>
+            <span class="muted">${escapeHtml(a.text)}</span>
+          </div>
+          <span class="badge ${a.kind}">${a.kind === 'danger' ? 'urgente' : a.kind === 'warn' ? 'atención' : 'ok'}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderFunnel({ pendingProfiles, pendingMemberships, published }){
+      const steps = [
+        { label:'Registro', value: pendingProfiles.length + pendingMemberships.length + published.length },
+        { label:'Pago', value: pendingMemberships.length },
+        { label:'Aprobación', value: pendingProfiles.length },
+        { label:'Publicación', value: published.length },
+        { label:'Contacto', value: published.length > 0 ? 'Listo' : '—' },
+      ];
+      document.getElementById('funnelGrid').innerHTML = steps.map(step => `
+        <div class="funnel-step">
+          <div class="num">${escapeHtml(step.value)}</div>
+          <div class="lbl">${escapeHtml(step.label)}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderReviewQueue(items){
+      const wrap = document.getElementById('reviewQueue');
+      if (!items.length) {
+        wrap.innerHTML = '<div class="empty">No hay perfiles pendientes. Buenísimo.</div>';
+        return;
+      }
+      wrap.innerHTML = `<div class="queue-list">${items.slice(0,5).map(item => `
+        <div class="queue-item">
+          <div class="queue-meta">
+            <strong>${escapeHtml(item.display_name || 'Sin nombre')}</strong>
+            <span class="muted">${escapeHtml(item.cedula_number || 'Sin cédula')} · ${escapeHtml(item.whatsapp_number || 'Sin WhatsApp')}</span>
+            <span class="muted">Creado: ${escapeHtml(prettyDate(item.created_at))}</span>
+          </div>
+          <span class="badge warn">pendiente</span>
+        </div>
+      `).join('')}</div>`;
+    }
+
+    function renderMembershipQueue(items){
+      const wrap = document.getElementById('membershipQueue');
+      if (!items.length) {
+        wrap.innerHTML = '<div class="empty">No hay pagos pendientes ahora mismo.</div>';
+        return;
+      }
+      wrap.innerHTML = `<div class="queue-list">${items.slice(0,6).map(item => {
+        const proof = (item.payment_documents || [])[0];
+        return `
+          <div class="queue-item">
+            <div class="queue-meta">
+              <strong>${escapeHtml(item.display_name || 'Sin nombre')}</strong>
+              <span class="muted">${escapeHtml(item.whatsapp_number || 'Sin WhatsApp')}</span>
+              <span class="muted">Actualizado: ${escapeHtml(prettyDate(item.updated_at))}</span>
+              <span class="muted">Comprobante: ${proof?.file_url ? '<a href="'+escapeHtml(proof.file_url)+'" target="_blank" rel="noopener">ver archivo</a>' : 'sin archivo visible'}</span>
+            </div>
+            <span class="badge danger">pago pendiente</span>
+          </div>
+        `;
+      }).join('')}</div>`;
+    }
+
+    function renderTopServices(rows){
+      const wrap = document.getElementById('topServices');
+      if (!rows.length) {
+        wrap.innerHTML = '<div class="empty">Aún no hay suficientes perfiles visibles para ranking.</div>';
+        return;
+      }
+      const max = Math.max(...rows.map(r => r.count), 1);
+      wrap.innerHTML = `<div class="rank-list">${rows.map(row => `
+        <div class="rank-item">
+          <div class="rank-meta" style="flex:1">
+            <strong>${escapeHtml(row.name)}</strong>
+            <div class="rank-bar"><div class="rank-fill" style="width:${(row.count / max) * 100}%"></div></div>
+          </div>
+          <span class="badge info">${row.count}</span>
+        </div>
+      `).join('')}</div>`;
+    }
+
+    function scrollToMemberships(ev){
+      ev.preventDefault();
+      document.getElementById('membershipAnchor')?.scrollIntoView({ behavior:'smooth', block:'start' });
+    }
+
+    async function loadDashboard(){
+      setText('heroStatus', 'Actualizando datos...');
+      try {
+        const [pendingProfiles, pendingMemberships, published, categories] = await Promise.all([
+          fetch('/admin/chiriperos/pending').then(r => r.json()),
+          fetch('/admin/memberships/pending').then(r => r.json()),
+          fetch('/chiriperos').then(r => r.json()),
+          fetch('/categorias').then(r => r.json())
+        ]);
+
+        setText('metricPublished', Array.isArray(published) ? published.length : 0);
+        setText('metricPendingProfiles', Array.isArray(pendingProfiles) ? pendingProfiles.length : 0);
+        setText('metricPendingMemberships', Array.isArray(pendingMemberships) ? pendingMemberships.length : 0);
+        setText('metricCategories', Array.isArray(categories) ? categories.length : 0);
+        setText('heroStatus', `Última carga: ${new Date().toLocaleTimeString('es-DO', { hour:'2-digit', minute:'2-digit' })}`);
+
+        renderAlerts({ pendingProfiles: pendingProfiles || [], pendingMemberships: pendingMemberships || [], published: published || [] });
+        renderFunnel({ pendingProfiles: pendingProfiles || [], pendingMemberships: pendingMemberships || [], published: published || [] });
+        renderReviewQueue(pendingProfiles || []);
+        renderMembershipQueue(pendingMemberships || []);
+        renderTopServices(aggregateTopServices(published || []));
+      } catch (e) {
+        setText('heroStatus', 'Error cargando dashboard');
+        document.getElementById('alertsList').innerHTML = `<div class="empty">No pude cargar el dashboard: ${escapeHtml(e.message || 'error desconocido')}</div>`;
+        document.getElementById('funnelGrid').innerHTML = '<div class="empty" style="grid-column:1/-1">Sin datos por ahora.</div>';
+        document.getElementById('reviewQueue').innerHTML = '<div class="empty">Sin datos.</div>';
+        document.getElementById('membershipQueue').innerHTML = '<div class="empty">Sin datos.</div>';
+        document.getElementById('topServices').innerHTML = '<div class="empty">Sin datos.</div>';
+      }
+    }
+
+    loadDashboard();
+    setInterval(loadDashboard, 60000);
+  </script>
+</body>
+</html>
