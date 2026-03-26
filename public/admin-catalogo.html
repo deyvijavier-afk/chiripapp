@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Catálogo | CHIRIPAPP Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f4f9fd;--card:#ffffff;--text:#0f172a;--muted:#475569;
+      --brand:#1ea4de;--brand2:#177fbf;--line:#dbe8f2;
+      --ok:#16a34a;--warn:#b45309;--danger:#dc2626;
+      --blue-soft:#e0f2fe;--green-soft:#ecfdf5;--amber-soft:#fff7ed;--red-soft:#fef2f2;
+      --shadow:0 18px 40px rgba(15,23,42,.08);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial;overflow-x:hidden}
+    .shell{display:grid;grid-template-columns:280px 1fr;min-height:100vh;transition:grid-template-columns .2s ease}
+    .shell.collapsed{grid-template-columns:0 1fr}
+    .sidebar{background:#ffffff;color:#0f172a;padding:22px 18px;position:sticky;top:0;height:100vh;overflow:auto;transition:transform .22s ease,opacity .22s ease;border-right:1px solid var(--line);box-shadow:0 10px 30px rgba(15,23,42,.05)}
+    .shell.collapsed .sidebar{transform:translateX(-100%);opacity:0;pointer-events:none}
+    .brand{display:flex;flex-direction:column;gap:10px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+    .brand img{width:180px;max-width:100%;object-fit:contain}
+    .brand small{color:#64748b;line-height:1.45}
+    .nav-group{margin-top:20px}
+    .nav-title{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8;margin:0 0 10px 10px}
+    .nav-list{display:flex;flex-direction:column;gap:6px}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:14px;color:#334155;text-decoration:none;font-size:14px;font-weight:600}
+    .nav-item:hover{background:#f1f5f9}
+    .nav-item.active{background:linear-gradient(135deg,#e0f2fe,#dbeafe);color:#075985;border:1px solid #bae6fd}
+    .nav-item.muted{opacity:.76}
+    .main{padding:22px;min-width:0}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+    .topbar-left{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .topbar-actions{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{border:none;border-radius:14px;padding:11px 14px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;transition:opacity .15s}
+    .btn:hover{opacity:.88}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .icon-btn{width:46px;height:46px;padding:0;background:#fff;color:var(--text);border:1px solid var(--line);border-radius:14px;font-size:18px;font-weight:800;cursor:pointer}
+    .btn-primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;box-shadow:0 10px 24px rgba(23,127,191,.22)}
+    .btn-ghost{background:#fff;color:var(--text);border:1px solid var(--line)}
+    .btn-danger{background:#fee2e2;color:#b91c1c;border:1px solid #fecaca}
+    .btn-sm{padding:7px 11px;font-size:13px;border-radius:10px}
+    .btn-xs{padding:5px 9px;font-size:12px;border-radius:8px}
+    .hero{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-radius:24px;padding:24px;box-shadow:0 18px 40px rgba(23,127,191,.24);margin-bottom:20px}
+    .hero h1{margin:0 0 8px;font-size:28px;line-height:1.04}
+    .hero p{margin:0;opacity:.95;max-width:780px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 2px 8px rgba(15,23,42,.05)}
+    .grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:0}
+    .section-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+    .section-header h2{margin:0;font-size:17px;font-weight:800}
+    .section-header small{color:#64748b;font-size:13px}
+    .badge{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:4px 9px;font-size:11px;font-weight:700}
+    .badge.ok{background:#dcfce7;color:#166534}
+    .badge.off{background:#f1f5f9;color:#64748b}
+    .badge.info{background:#e0f2fe;color:#075985}
+    .item-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#fafcfe;margin-bottom:8px;transition:background .15s}
+    .item-row:hover{background:#f0f7fd}
+    .item-row:last-child{margin-bottom:0}
+    .item-name{font-weight:600;font-size:14px;flex:1;min-width:0}
+    .item-meta{font-size:12px;color:#64748b;margin-top:2px}
+    .item-actions{display:flex;gap:6px;flex-shrink:0}
+    .sub-list{margin:8px 0 4px 16px;display:flex;flex-direction:column;gap:6px}
+    .sub-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fbfe}
+    .sub-row:hover{background:#eef6fd}
+    .sub-name{font-size:13px;font-weight:600;flex:1}
+    .sub-actions{display:flex;gap:5px}
+    .add-sub-form{margin:8px 0 4px 16px;display:flex;gap:8px;align-items:center}
+    .add-sub-form input{flex:1;border:1px solid var(--line);border-radius:10px;padding:7px 11px;font-size:13px;font-family:inherit;outline:none}
+    .add-sub-form input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(30,164,222,.12)}
+    .empty{border:1px dashed #cbd5e1;border-radius:12px;padding:14px;text-align:center;color:#94a3b8;font-size:13px;background:#fff}
+    .form-row{display:flex;gap:8px;margin-bottom:14px}
+    .form-row input,.form-row select{flex:1;border:1px solid var(--line);border-radius:12px;padding:10px 13px;font-size:14px;font-family:inherit;outline:none;background:#fff}
+    .form-row input:focus,.form-row select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(30,164,222,.12)}
+    .toast{position:fixed;bottom:24px;right:24px;background:#0f172a;color:#fff;padding:13px 18px;border-radius:14px;font-size:14px;font-weight:600;z-index:999;opacity:0;transform:translateY(10px);transition:all .25s;pointer-events:none;max-width:320px}
+    .toast.show{opacity:1;transform:translateY(0)}
+    .toast.ok{background:#166534}
+    .toast.err{background:#b91c1c}
+    .spinner{display:inline-block;width:18px;height:18px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loading-overlay{display:flex;align-items:center;justify-content:center;padding:32px;color:#94a3b8;font-size:14px;gap:10px}
+    @media(max-width:900px){
+      .shell,.shell.collapsed{grid-template-columns:1fr}
+      .sidebar{position:fixed;left:0;width:280px;z-index:30}
+      .shell.collapsed .sidebar{transform:translateX(-100%)}
+      .main{padding:14px}
+      .grid-3{grid-template-columns:1fr}
+    }
+    @media(max-width:600px){
+      .main{padding:12px}
+      .hero{padding:18px;border-radius:18px}
+      .hero h1{font-size:22px}
+      .grid-3{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+<div class="shell collapsed" id="appShell">
+  <aside class="sidebar">
+    <div class="brand">
+      <img src="/demo/assets/logo_horizontal_trans.png" alt="CHIRIPAPP" />
+      <small>Backoffice operativo de marketplace + moderación + membresías.</small>
+    </div>
+    <div class="nav-group">
+      <p class="nav-title">Principal</p>
+      <div class="nav-list">
+        <a class="nav-item" href="/demo/admin-dashboard.html">📊 Dashboard</a>
+      </div>
+    </div>
+    <div class="nav-group">
+      <p class="nav-title">Operaciones</p>
+      <div class="nav-list">
+        <a class="nav-item" href="/demo/admin-chiriperos.html">👷 Chiriperos</a>
+        <a class="nav-item" href="/demo/admin-review.html">🛡️ Revisiones</a>
+        <a class="nav-item" href="/demo/admin-memberships.html">💳 Membresías</a>
+        <a class="nav-item muted" href="#">📣 Anuncios</a>
+      </div>
+    </div>
+    <div class="nav-group">
+      <p class="nav-title">Configuración</p>
+      <div class="nav-list">
+        <a class="nav-item active" href="/demo/admin-catalogo.html">⚙️ Catálogo</a>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="icon-btn" id="sidebarToggle" type="button" aria-label="Menú">☰</button>
+        <div>
+          <div style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b">CHIRIPAPP Admin</div>
+          <strong style="font-size:22px">⚙️ Catálogo</strong>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <a class="btn btn-ghost" href="/demo/index.html" target="_blank">🌐 Ver sitio</a>
+      </div>
+    </div>
+
+    <div class="hero">
+      <h1>Gestión de Catálogo</h1>
+      <p>Administra las categorías, servicios y zonas disponibles en la plataforma. Los cambios aplican de inmediato para nuevos registros.</p>
+    </div>
+
+    <div class="grid-3" id="mainGrid">
+      <!-- Categorías & Servicios -->
+      <div class="card" style="grid-column: span 2">
+        <div class="section-header">
+          <div>
+            <h2>🗂️ Categorías y Servicios</h2>
+            <small id="catCount">Cargando...</small>
+          </div>
+          <button class="btn btn-primary btn-sm" id="btnAddCat">+ Nueva categoría</button>
+        </div>
+
+        <!-- Formulario nueva categoría (oculto por defecto) -->
+        <div id="formNewCat" style="display:none;margin-bottom:14px">
+          <div class="form-row">
+            <input type="text" id="inputNewCat" placeholder="Nombre de la categoría (ej: Electricidad)" maxlength="80" />
+            <button class="btn btn-primary btn-sm" id="btnSaveCat">Guardar</button>
+            <button class="btn btn-ghost btn-sm" id="btnCancelCat">Cancelar</button>
+          </div>
+        </div>
+
+        <div id="catList">
+          <div class="loading-overlay"><span class="spinner" style="border-top-color:var(--brand)"></span> Cargando categorías...</div>
+        </div>
+      </div>
+
+      <!-- Zonas -->
+      <div class="card">
+        <div class="section-header">
+          <div>
+            <h2>📍 Zonas</h2>
+            <small id="zonaCount">Cargando...</small>
+          </div>
+          <button class="btn btn-primary btn-sm" id="btnAddZona">+ Nueva zona</button>
+        </div>
+
+        <!-- Formulario nueva zona (oculto por defecto) -->
+        <div id="formNewZona" style="display:none;margin-bottom:14px">
+          <div class="form-row">
+            <input type="text" id="inputNewZona" placeholder="Nombre de la zona (ej: Gazcue)" maxlength="80" />
+          </div>
+          <div class="form-row">
+            <input type="text" id="inputNewZonaCity" placeholder="Ciudad" value="Santo Domingo" maxlength="80" />
+            <button class="btn btn-primary btn-sm" id="btnSaveZona">Guardar</button>
+            <button class="btn btn-ghost btn-sm" id="btnCancelZona">Cancelar</button>
+          </div>
+        </div>
+
+        <div id="zonaList">
+          <div class="loading-overlay"><span class="spinner" style="border-top-color:var(--brand)"></span> Cargando zonas...</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Toast de notificaciones -->
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';
+
+// ─── Sidebar toggle ───────────────────────────────────────────────
+document.getElementById('sidebarToggle').addEventListener('click', () => {
+  document.getElementById('appShell').classList.toggle('collapsed');
+});
+
+// ─── Toast ────────────────────────────────────────────────────────
+function toast(msg, type = 'ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast show ${type}`;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 3200);
+}
+
+// ─── Estado global ────────────────────────────────────────────────
+let categorias = [];
+let zonas = [];
+
+// ─── Render categorías ────────────────────────────────────────────
+function renderCats() {
+  const el = document.getElementById('catList');
+  document.getElementById('catCount').textContent =
+    `${categorias.length} categoría${categorias.length !== 1 ? 's' : ''} · ${categorias.reduce((a, c) => a + (c.subcategories?.length || 0), 0)} servicios`;
+
+  if (!categorias.length) {
+    el.innerHTML = '<div class="empty">No hay categorías. Agrega la primera.</div>';
+    return;
+  }
+
+  el.innerHTML = categorias.map(cat => `
+    <div class="item-row" id="cat-${cat.id}">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span class="item-name">${escHtml(cat.name)}</span>
+          <span class="badge ${cat.is_active ? 'ok' : 'off'}">${cat.is_active ? 'Activa' : 'Inactiva'}</span>
+          <span class="badge info">${cat.subcategories?.length || 0} servicios</span>
+        </div>
+
+        <!-- Servicios (subcategorías) -->
+        <div class="sub-list" id="subs-${cat.id}">
+          ${(cat.subcategories || []).map(s => `
+            <div class="sub-row" id="sub-${s.id}">
+              <span class="sub-name">${escHtml(s.name)}</span>
+              <div class="sub-actions">
+                <span class="badge ${s.is_active ? 'ok' : 'off'}" style="cursor:pointer" title="${s.is_active ? 'Desactivar' : 'Activar'}"
+                  onclick="toggleSub('${s.id}', ${s.is_active}, '${cat.id}')">${s.is_active ? '✓ Activo' : '✗ Inactivo'}</span>
+                <button class="btn btn-danger btn-xs" onclick="deleteSub('${s.id}', '${cat.id}')">🗑</button>
+              </div>
+            </div>
+          `).join('')}
+          ${cat.subcategories?.length === 0 ? '<div class="empty" style="padding:8px;font-size:12px">Sin servicios aún</div>' : ''}
+        </div>
+
+        <!-- Formulario agregar servicio -->
+        <div class="add-sub-form" id="addSubForm-${cat.id}" style="display:none">
+          <input type="text" id="inputSub-${cat.id}" placeholder="Nombre del servicio" maxlength="80" />
+          <button class="btn btn-primary btn-xs" onclick="saveSub('${cat.id}')">Agregar</button>
+          <button class="btn btn-ghost btn-xs" onclick="hideAddSubForm('${cat.id}')">✕</button>
+        </div>
+
+        <button class="btn btn-ghost btn-xs" style="margin-top:8px;margin-left:16px" onclick="showAddSubForm('${cat.id}')">+ Agregar servicio</button>
+      </div>
+
+      <div class="item-actions" style="flex-direction:column;gap:6px;align-items:flex-end">
+        <button class="btn btn-ghost btn-xs" onclick="toggleCat('${cat.id}', ${cat.is_active})"
+          title="${cat.is_active ? 'Desactivar' : 'Activar'}">${cat.is_active ? '⏸ Desactivar' : '▶ Activar'}</button>
+        <button class="btn btn-xs" onclick="renameCat('${cat.id}', '${escAttr(cat.name)}')"
+          style="background:#f0f7fd;color:#075985;border:1px solid #bae6fd">✏️ Renombrar</button>
+        <button class="btn btn-danger btn-xs" onclick="deleteCat('${cat.id}', '${escAttr(cat.name)}')">🗑 Borrar</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── Render zonas ─────────────────────────────────────────────────
+function renderZonas() {
+  const el = document.getElementById('zonaList');
+  const activas = zonas.filter(z => z.is_active).length;
+  document.getElementById('zonaCount').textContent =
+    `${zonas.length} zona${zonas.length !== 1 ? 's' : ''} · ${activas} activas`;
+
+  if (!zonas.length) {
+    el.innerHTML = '<div class="empty">No hay zonas. Agrega la primera.</div>';
+    return;
+  }
+
+  el.innerHTML = zonas.map(z => `
+    <div class="item-row" id="zona-${z.id}">
+      <div style="flex:1;min-width:0">
+        <div class="item-name">${escHtml(z.name)}</div>
+        <div class="item-meta">${escHtml(z.city)}</div>
+      </div>
+      <div class="item-actions">
+        <span class="badge ${z.is_active ? 'ok' : 'off'}" style="cursor:pointer" title="${z.is_active ? 'Desactivar' : 'Activar'}"
+          onclick="toggleZona('${z.id}', ${z.is_active})">${z.is_active ? '✓' : '✗'}</span>
+        <button class="btn btn-xs" onclick="renameZona('${z.id}', '${escAttr(z.name)}', '${escAttr(z.city)}')"
+          style="background:#f0f7fd;color:#075985;border:1px solid #bae6fd">✏️</button>
+        <button class="btn btn-danger btn-xs" onclick="deleteZona('${z.id}', '${escAttr(z.name)}')">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── Carga inicial ────────────────────────────────────────────────
+async function loadAll() {
+  try {
+    const [rCats, rZonas] = await Promise.all([
+      fetch(`${API}/admin/catalogo/categorias`).then(r => r.json()),
+      fetch(`${API}/admin/catalogo/zonas`).then(r => r.json()),
+    ]);
+    categorias = Array.isArray(rCats) ? rCats : [];
+    zonas = Array.isArray(rZonas) ? rZonas : [];
+    renderCats();
+    renderZonas();
+  } catch (e) {
+    toast('Error cargando datos: ' + e.message, 'err');
+  }
+}
+
+// ─── Categorías: CRUD ─────────────────────────────────────────────
+document.getElementById('btnAddCat').addEventListener('click', () => {
+  document.getElementById('formNewCat').style.display = '';
+  document.getElementById('inputNewCat').focus();
+});
+document.getElementById('btnCancelCat').addEventListener('click', () => {
+  document.getElementById('formNewCat').style.display = 'none';
+  document.getElementById('inputNewCat').value = '';
+});
+document.getElementById('btnSaveCat').addEventListener('click', async () => {
+  const name = document.getElementById('inputNewCat').value.trim();
+  if (!name) return toast('Escribe el nombre de la categoría', 'err');
+  try {
+    const r = await fetch(`${API}/admin/catalogo/categorias`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ name })
+    });
+    const d = await r.json();
+    if (!r.ok) return toast(d.error === 'categoria_ya_existe' ? 'Esa categoría ya existe' : d.error, 'err');
+    toast(`✅ Categoría "${name}" creada`);
+    document.getElementById('formNewCat').style.display = 'none';
+    document.getElementById('inputNewCat').value = '';
+    await loadAll();
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+});
+document.getElementById('inputNewCat').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('btnSaveCat').click();
+});
+
+async function toggleCat(id, currentActive) {
+  try {
+    const r = await fetch(`${API}/admin/catalogo/categorias/${id}`, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ is_active: !currentActive })
+    });
+    if (!r.ok) { const d = await r.json(); return toast(d.error, 'err'); }
+    toast(currentActive ? '⏸ Categoría desactivada' : '▶ Categoría activada');
+    await loadAll();
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+}
+
+async function renameCat(id, currentName) {
+  const name = prompt('Nuevo nombre para la categoría:', currentName);
+  if (!name || name.trim() === currentName) return;
+  try {
+    const r = await fetch(`${API}/admin/catalogo/categorias/${id}`, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ name: name.trim() })
+    });
+    const d = await r.json();
+    if (!r.ok) return toast(d.error === 'nombre_duplicado' ? 'Ese nombre ya existe' : d.error, 'err');
+    toast(`✅ Categoría renombrada a "${name.trim()}"`);
+    await loadAll();
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+}
+
+async function deleteCat(id, name) {
+  if (!confirm(`¿Seguro que quieres borrar la categoría "${name}"?\nSe borrarán también todos sus servicios.`)) return;
+  try {
+    const r = await fetch(`${API}/admin/catalogo/categorias/${id}`, { method: 'DELETE' });
+    const d = await r.json();
+    if (!r.ok) return toast(d.message || d.error, 'err');
+    toast(`🗑 Categoría "${name}" eliminada`);
+    await loadAll();
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+}
+
+// ─── Subcategorías (servicios): CRUD ─────────────────────────────
+function showAddSubForm(catId) {
+  document.getElementById(`addSubForm-${catId}`).style.display = 'flex';
+  document.getElementById(`inputSub-${catId}`).focus();
+}
+function hideAddSubForm(catId) {
+  document.getElementById(`addSubForm-${catId}`).style.display = 'none';
+  document.getElementById(`inputSub-${catId}`).value = '';
+}
+
+async function saveSub(catId) {
+  const input = document.getElementById(`inputSub-${catId}`);
+  const name = input.value.trim();
+  if (!name) return toast('Escribe el nombre del servicio', 'err');
+  try {
+    const r = await fetch(`${API}/admin/catalogo/subcategorias`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ category_id: catId, name })
+    });
+    const d = await r.json();
+    if (!r.ok) return toast(d.error === 'servicio_ya_existe' ? 'Ese servicio ya existe en esta categoría' : d.error, 'err');
+    toast(`✅ Servicio "${name}" agregado`);
+    input.value = '';
+    await loadAll();
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+}
+
+async function toggleSub(id, currentActive, catId) {
+  try {
+    const r = await fetch(`${API}/admin/catalogo/subcategorias/${id}`, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ is_active: !currentActive })
+    });
+    if (!r.ok) { const d = await r.json(); return toast(d.error, 'err'); }
+    toast(currentActive ? '⏸ Servicio desactivado' : '▶ Servicio activado');
+    await loadAll();
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+}
+
+async function deleteSub(id, catId) {
+  if (!confirm('¿Seguro que quieres borrar este servicio?')) return;
+  try {
+    const r = await fetch(`${API}/admin/catalogo/subcategorias/${id}`, { method: 'DELETE' });
+    const d = await r.json();
+    if (!r.ok) return toast(d.message || d.error, 'err');
+    toast('🗑 Servicio eliminado');
+    await loadAll();
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+}
+
+// ─── Zonas: CRUD ──────────────────────────────────────────────────
+document.getElementById('btnAddZona').addEventListener('click', () => {
+  document.getElementById('formNewZona').style.display = '';
+  document.getElementById('inputNewZona').focus();
+});
+document.getElementById('btnCancelZona').addEventListener('click', () => {
+  document.getElementById('formNewZona').style.display = 'none';
+  document.getElementById('inputNewZona').value = '';
+});
+document.getElementById('btnSaveZona').addEventListener('click', async () => {
+  const name = document.getElementById('inputNewZona').value.trim();
+  const city = document.getElementById('inputNewZonaCity').value.trim() || 'Santo Domingo';
+  if (!name) return toast('Escribe el nombre de la zona', 'err');
+  try {
+    const r = await fetch(`${API}/admin/catalogo/zonas`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ name, city })
+    });
+    const d = await r.json();
+    if (!r.ok) return toast(d.error === 'zona_ya_existe' ? 'Esa zona ya existe' : d.error, 'err');
+    toast(`✅ Zona "${name}" creada`);
+    document.getElementById('formNewZona').style.display = 'none';
+    document.getElementById('inputNewZona').value = '';
+    await loadAll();
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+});
+document.getElementById('inputNewZona').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('btnSaveZona').click();
+});
+
+async function toggleZona(id, currentActive) {
+  try {
+    const r = await fetch(`${API}/admin/catalogo/zonas/${id}`, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ is_active: !currentActive })
+    });
+    if (!r.ok) { const d = await r.json(); return toast(d.error, 'err'); }
+    toast(currentActive ? '⏸ Zona desactivada' : '▶ Zona activada');
+    await loadAll();
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+}
+
+async function renameZona(id, currentName, currentCity) {
+  const name = prompt('Nuevo nombre para la zona:', currentName);
+  if (!name || name.trim() === currentName) return;
+  try {
+    const r = await fetch(`${API}/admin/catalogo/zonas/${id}`, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ name: name.trim() })
+    });
+    const d = await r.json();
+    if (!r.ok) return toast(d.error === 'nombre_duplicado' ? 'Ese nombre ya existe' : d.error, 'err');
+    toast(`✅ Zona renombrada a "${name.trim()}"`);
+    await loadAll();
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+}
+
+async function deleteZona(id, name) {
+  if (!confirm(`¿Seguro que quieres borrar la zona "${name}"?`)) return;
+  try {
+    const r = await fetch(`${API}/admin/catalogo/zonas/${id}`, { method: 'DELETE' });
+    const d = await r.json();
+    if (!r.ok) return toast(d.message || d.error, 'err');
+    toast(`🗑 Zona "${name}" eliminada`);
+    await loadAll();
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(s) {
+  return String(s || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+// ─── Init ─────────────────────────────────────────────────────────
+loadAll();
+</script>
+</body>
+</html>

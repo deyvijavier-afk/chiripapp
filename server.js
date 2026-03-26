@@ -1313,6 +1313,176 @@ app.post('/contact-events', async (req, res) => {
   }
 });
 
+// ===== ADMIN CATÁLOGO: CATEGORÍAS =====
+app.get('/admin/catalogo/categorias', async (_req, res) => {
+  try {
+    const r = await db.query(`
+      select c.id, c.name, c.is_active, c.created_at,
+        coalesce(json_agg(json_build_object('id',s.id,'name',s.name,'is_active',s.is_active)
+          order by s.name) filter (where s.id is not null), '[]') as subcategories
+      from categories c
+      left join subcategories s on s.category_id = c.id
+      group by c.id order by c.name
+    `);
+    res.json(r.rows);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/admin/catalogo/categorias', async (req, res) => {
+  try {
+    const { name } = req.body || {};
+    if (!name?.trim()) return res.status(400).json({ error: 'name_required' });
+    const r = await db.query(
+      `insert into categories (name) values ($1) returning *`,
+      [name.trim()]
+    );
+    res.status(201).json(r.rows[0]);
+  } catch (e) {
+    if (e.code === '23505') return res.status(409).json({ error: 'categoria_ya_existe' });
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.patch('/admin/catalogo/categorias/:id', async (req, res) => {
+  try {
+    const { name, is_active } = req.body || {};
+    const id = req.params.id;
+    const updates = [];
+    const vals = [];
+    if (name !== undefined) { vals.push(name.trim()); updates.push(`name=$${vals.length}`); }
+    if (is_active !== undefined) { vals.push(is_active); updates.push(`is_active=$${vals.length}`); }
+    if (!updates.length) return res.status(400).json({ error: 'nothing_to_update' });
+    vals.push(id);
+    const r = await db.query(
+      `update categories set ${updates.join(',')} where id=$${vals.length} returning *`,
+      vals
+    );
+    if (!r.rowCount) return res.status(404).json({ error: 'not_found' });
+    res.json(r.rows[0]);
+  } catch (e) {
+    if (e.code === '23505') return res.status(409).json({ error: 'nombre_duplicado' });
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.delete('/admin/catalogo/categorias/:id', async (req, res) => {
+  try {
+    const r = await db.query(`delete from categories where id=$1 returning id`, [req.params.id]);
+    if (!r.rowCount) return res.status(404).json({ error: 'not_found' });
+    res.json({ ok: true });
+  } catch (e) {
+    if (e.code === '23503') return res.status(409).json({ error: 'categoria_en_uso', message: 'Esta categoría tiene servicios activos asignados a chiriperos.' });
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ===== ADMIN CATÁLOGO: SUBCATEGORÍAS (SERVICIOS) =====
+app.post('/admin/catalogo/subcategorias', async (req, res) => {
+  try {
+    const { category_id, name } = req.body || {};
+    if (!category_id || !name?.trim()) return res.status(400).json({ error: 'category_id_and_name_required' });
+    const r = await db.query(
+      `insert into subcategories (category_id, name) values ($1,$2) returning *`,
+      [category_id, name.trim()]
+    );
+    res.status(201).json(r.rows[0]);
+  } catch (e) {
+    if (e.code === '23505') return res.status(409).json({ error: 'servicio_ya_existe' });
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.patch('/admin/catalogo/subcategorias/:id', async (req, res) => {
+  try {
+    const { name, is_active } = req.body || {};
+    const id = req.params.id;
+    const updates = [];
+    const vals = [];
+    if (name !== undefined) { vals.push(name.trim()); updates.push(`name=$${vals.length}`); }
+    if (is_active !== undefined) { vals.push(is_active); updates.push(`is_active=$${vals.length}`); }
+    if (!updates.length) return res.status(400).json({ error: 'nothing_to_update' });
+    vals.push(id);
+    const r = await db.query(
+      `update subcategories set ${updates.join(',')} where id=$${vals.length} returning *`,
+      vals
+    );
+    if (!r.rowCount) return res.status(404).json({ error: 'not_found' });
+    res.json(r.rows[0]);
+  } catch (e) {
+    if (e.code === '23505') return res.status(409).json({ error: 'nombre_duplicado' });
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.delete('/admin/catalogo/subcategorias/:id', async (req, res) => {
+  try {
+    const r = await db.query(`delete from subcategories where id=$1 returning id`, [req.params.id]);
+    if (!r.rowCount) return res.status(404).json({ error: 'not_found' });
+    res.json({ ok: true });
+  } catch (e) {
+    if (e.code === '23503') return res.status(409).json({ error: 'servicio_en_uso', message: 'Este servicio está asignado a uno o más chiriperos.' });
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ===== ADMIN CATÁLOGO: ZONAS =====
+app.get('/admin/catalogo/zonas', async (_req, res) => {
+  try {
+    const r = await db.query(`select * from zones order by name`);
+    res.json(r.rows);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/admin/catalogo/zonas', async (req, res) => {
+  try {
+    const { name, city = 'Santo Domingo' } = req.body || {};
+    if (!name?.trim()) return res.status(400).json({ error: 'name_required' });
+    const r = await db.query(
+      `insert into zones (name, city) values ($1,$2) returning *`,
+      [name.trim(), city.trim()]
+    );
+    res.status(201).json(r.rows[0]);
+  } catch (e) {
+    if (e.code === '23505') return res.status(409).json({ error: 'zona_ya_existe' });
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.patch('/admin/catalogo/zonas/:id', async (req, res) => {
+  try {
+    const { name, city, is_active } = req.body || {};
+    const id = req.params.id;
+    const updates = [];
+    const vals = [];
+    if (name !== undefined) { vals.push(name.trim()); updates.push(`name=$${vals.length}`); }
+    if (city !== undefined) { vals.push(city.trim()); updates.push(`city=$${vals.length}`); }
+    if (is_active !== undefined) { vals.push(is_active); updates.push(`is_active=$${vals.length}`); }
+    if (!updates.length) return res.status(400).json({ error: 'nothing_to_update' });
+    vals.push(id);
+    const r = await db.query(
+      `update zones set ${updates.join(',')} where id=$${vals.length} returning *`,
+      vals
+    );
+    if (!r.rowCount) return res.status(404).json({ error: 'not_found' });
+    res.json(r.rows[0]);
+  } catch (e) {
+    if (e.code === '23505') return res.status(409).json({ error: 'nombre_duplicado' });
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.delete('/admin/catalogo/zonas/:id', async (req, res) => {
+  try {
+    const r = await db.query(`delete from zones where id=$1 returning id`, [req.params.id]);
+    if (!r.rowCount) return res.status(404).json({ error: 'not_found' });
+    res.json({ ok: true });
+  } catch (e) {
+    if (e.code === '23503') return res.status(409).json({ error: 'zona_en_uso', message: 'Esta zona está asignada a uno o más chiriperos.' });
+    res.status(500).json({ error: e.message });
+  }
+});
+// ===== FIN ADMIN CATÁLOGO =====
+
 app.use((err, _req, res, next) => {
   if (err && err.type === 'entity.too.large') {
     return res.status(413).json({ error: 'image_too_large', message: 'La imagen es demasiado pesada. Intenta con una foto más liviana.' });
