@@ -58,6 +58,9 @@
     .field input,.field textarea{padding:10px 13px;border:1.5px solid var(--line);border-radius:11px;font-size:14px;font-family:inherit;outline:none;transition:border-color .15s,box-shadow .15s;color:var(--text);background:#fff}
     .field input:focus,.field textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(30,164,222,.12)}
     .field textarea{min-height:80px;resize:vertical}
+    .file-picker{border:1.5px dashed #93c5fd;border-radius:14px;padding:14px;background:#f8fbff}
+    .file-picker input[type=file]{display:block;width:100%;padding:10px;background:#fff;border:1px solid var(--line);border-radius:11px}
+    .file-meta{font-size:12px;color:#64748b;line-height:1.5;margin-top:8px}
     .char-count{font-size:11px;color:#94a3b8;text-align:right;margin-top:2px}
     .btn{border:none;border-radius:12px;padding:10px 16px;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;display:inline-flex;align-items:center;gap:7px;transition:opacity .15s}
     .btn:hover{opacity:.88}
@@ -128,7 +131,6 @@
       💡 Tu anuncio aparece en tu perfil público dentro del directorio de CHIRIPAPP. Un buen texto y una imagen llamativa aumentan las consultas que recibes.
     </div>
 
-    <!-- Tipo de banner -->
     <div class="card">
       <div class="card-title">🖼️ Tipo de banner</div>
       <div class="banner-options">
@@ -139,14 +141,13 @@
           <span class="selected-badge">✓ Seleccionado</span>
         </div>
         <div class="banner-opt" id="optCustom" onclick="selectBanner('custom')">
-          <div class="opt-icon">📸</div>
+          <div class="opt-icon">🖼️</div>
           <div class="opt-title">Banner personalizado</div>
-          <div class="opt-desc">Sube tu propio banner con tu logo, foto o diseño. Recomendado: 1200×400px, JPG o PNG.</div>
+          <div class="opt-desc">Sube tu propio banner con tu logo, foto o diseño. Recomendado: 1200×400 px, JPG o PNG.</div>
           <span class="selected-badge">✓ Seleccionado</span>
         </div>
       </div>
 
-      <!-- Preview del banner -->
       <div class="banner-preview" id="bannerPreview">
         <div class="generic-banner" id="genericBanner">
           <img class="gb-logo" src="/demo/assets/logo_horizontal_trans.png" alt="CHIRIPAPP"/>
@@ -155,15 +156,18 @@
         </div>
       </div>
 
-      <!-- URL del banner personalizado (oculto por defecto) -->
       <div class="field" id="customBannerField" style="display:none">
-        <label>URL de tu banner personalizado</label>
-        <input type="text" id="inputBannerUrl" placeholder="https://... (imagen JPG o PNG)" oninput="updateBannerPreview()"/>
-        <div style="font-size:12px;color:#64748b;margin-top:4px">Puedes usar servicios como Imgur, Cloudinary o cualquier URL pública de imagen.</div>
+        <label>Sube tu banner personalizado</label>
+        <div class="file-picker">
+          <input type="file" id="inputBannerFile" accept="image/*" capture="environment"/>
+          <div class="file-meta" id="bannerFileMeta">
+            En celular puedes tomar una foto o elegirla de tu galería. En computadora se abrirá el explorador de archivos.<br/>
+            Formatos recomendados: JPG o PNG. Tamaño recomendado: 1200×400 px.
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Texto del anuncio -->
     <div class="card">
       <div class="card-title">✏️ Texto del anuncio</div>
       <div class="field">
@@ -191,26 +195,26 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  // ─── Sesión ───────────────────────────────────────────────────────
   let session = null;
   try { session = JSON.parse(localStorage.getItem('chiripero_session')); } catch(e) {}
   if (!session?.profile_id) window.location.href = '/demo/chiripero-login.html';
 
   let currentBannerType = 'generic';
+  let selectedBannerFile = null;
+  let customBannerPreviewUrl = '';
 
-  // ─── Sidebar toggle ───────────────────────────────────────────────
   document.getElementById('sidebarToggle').addEventListener('click', () => {
     document.getElementById('appShell').classList.toggle('collapsed');
   });
 
-  // ─── Logout ───────────────────────────────────────────────────────
   document.getElementById('btnLogout').addEventListener('click', e => {
     e.preventDefault();
     localStorage.removeItem('chiripero_session');
     window.location.href = '/demo/chiripero-login.html';
   });
 
-  // ─── Toast ────────────────────────────────────────────────────────
+  document.getElementById('inputBannerFile').addEventListener('change', handleBannerFileChange);
+
   function toast(msg, type = 'ok') {
     const el = document.getElementById('toast');
     el.textContent = msg;
@@ -219,12 +223,31 @@
     el._t = setTimeout(() => el.classList.remove('show'), 3200);
   }
 
-  // ─── Seleccionar tipo de banner ───────────────────────────────────
   function selectBanner(type) {
     currentBannerType = type;
     document.getElementById('optGeneric').classList.toggle('selected', type === 'generic');
     document.getElementById('optCustom').classList.toggle('selected', type === 'custom');
     document.getElementById('customBannerField').style.display = type === 'custom' ? 'flex' : 'none';
+    updateBannerPreview();
+  }
+
+  function handleBannerFileChange(event) {
+    const file = event.target.files?.[0];
+    selectedBannerFile = file || null;
+
+    if (customBannerPreviewUrl) {
+      URL.revokeObjectURL(customBannerPreviewUrl);
+      customBannerPreviewUrl = '';
+    }
+
+    if (selectedBannerFile) {
+      customBannerPreviewUrl = URL.createObjectURL(selectedBannerFile);
+      const sizeMb = (selectedBannerFile.size / (1024 * 1024)).toFixed(2);
+      document.getElementById('bannerFileMeta').innerHTML = `Archivo seleccionado: <strong>${selectedBannerFile.name}</strong> (${sizeMb} MB)<br/>En celular puedes tomar una foto o elegirla de tu galería. En computadora se abrirá el explorador de archivos.`;
+    } else {
+      document.getElementById('bannerFileMeta').innerHTML = 'En celular puedes tomar una foto o elegirla de tu galería. En computadora se abrirá el explorador de archivos.<br/>Formatos recomendados: JPG o PNG. Tamaño recomendado: 1200×400 px.';
+    }
+
     updateBannerPreview();
   }
 
@@ -234,11 +257,12 @@
     const displayName = session?.display_name || 'Tu nombre';
 
     if (currentBannerType === 'custom') {
-      const url = document.getElementById('inputBannerUrl').value.trim();
-      if (url) {
-        preview.innerHTML = `<img src="${url}" alt="Banner personalizado" onerror="this.src='/demo/assets/logo_chiripapp.png'"/>`;
+      const storedUrl = session?.ad_banner_url?.trim();
+      const previewUrl = customBannerPreviewUrl || storedUrl;
+      if (previewUrl) {
+        preview.innerHTML = `<img src="${previewUrl}" alt="Banner personalizado" onerror="this.src='/demo/assets/logo_chiripapp.png'"/>`;
       } else {
-        preview.innerHTML = `<div style="color:#94a3b8;font-size:14px;padding:20px;text-align:center">📸 Pega la URL de tu banner para ver la vista previa</div>`;
+        preview.innerHTML = `<div style="color:#94a3b8;font-size:14px;padding:20px;text-align:center">🖼️ Selecciona una imagen para ver la vista previa</div>`;
       }
     } else {
       preview.innerHTML = `
@@ -250,13 +274,21 @@
     }
   }
 
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
   function updateCharCount() {
     const len = document.getElementById('inputAdText').value.length;
     document.getElementById('charCount').textContent = len;
     updateBannerPreview();
   }
 
-  // ─── Cargar datos del anuncio ─────────────────────────────────────
   async function loadAnuncio() {
     try {
       const r = await fetch(`/chiripero/${session.profile_id}/me`);
@@ -265,15 +297,19 @@
       session = { ...session, ...d };
       localStorage.setItem('chiripero_session', JSON.stringify(session));
 
-      // Sidebar
       document.getElementById('sidebarName').textContent = d.display_name || d.full_name;
       document.getElementById('sidebarStatus').innerHTML = `<span class="badge ${d.membership_status === 'active' ? 'ok' : 'warn'}">${d.membership_status === 'active' ? '✓ Activa' : 'Sin membresía'}</span>`;
       if (d.avatar_url) document.getElementById('sidebarAvatar').src = d.avatar_url;
 
-      // Anuncio
       const bannerType = d.ad_banner_type || 'generic';
+      document.getElementById('inputBannerFile').value = '';
+      selectedBannerFile = null;
+      if (customBannerPreviewUrl) {
+        URL.revokeObjectURL(customBannerPreviewUrl);
+        customBannerPreviewUrl = '';
+      }
+      document.getElementById('bannerFileMeta').innerHTML = 'En celular puedes tomar una foto o elegirla de tu galería. En computadora se abrirá el explorador de archivos.<br/>Formatos recomendados: JPG o PNG. Tamaño recomendado: 1200×400 px.';
       selectBanner(bannerType);
-      if (d.ad_banner_url) document.getElementById('inputBannerUrl').value = d.ad_banner_url;
       document.getElementById('inputAdText').value = d.ad_text || '';
       updateCharCount();
       updateBannerPreview();
@@ -282,7 +318,6 @@
     }
   }
 
-  // ─── Guardar anuncio ──────────────────────────────────────────────
   document.getElementById('btnSaveAnuncio').addEventListener('click', async () => {
     const btn = document.getElementById('btnSaveAnuncio');
     btn.disabled = true;
@@ -292,16 +327,35 @@
         ad_banner_type: currentBannerType,
         ad_text: document.getElementById('inputAdText').value.trim(),
       };
+
       if (currentBannerType === 'custom') {
-        const url = document.getElementById('inputBannerUrl').value.trim();
-        if (!url) {
-          toast('Pega la URL de tu banner personalizado', 'err');
+        if (selectedBannerFile) {
+          const base64 = await fileToBase64(selectedBannerFile);
+          const uploadResp = await fetch(`/chiripero/${session.profile_id}/anuncio/banner`, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ imageBase64: base64, fileName: selectedBannerFile.name })
+          });
+          const uploadData = await uploadResp.json();
+          if (!uploadResp.ok) {
+            toast(uploadData.error || 'Error subiendo banner', 'err');
+            btn.disabled = false;
+            btn.innerHTML = '💾 Guardar anuncio';
+            return;
+          }
+          session = { ...session, ...uploadData };
+          localStorage.setItem('chiripero_session', JSON.stringify(session));
+          payload.ad_banner_url = uploadData.ad_banner_url;
+        }
+
+        if (!payload.ad_banner_url && !session?.ad_banner_url) {
+          toast('Selecciona una imagen para tu banner personalizado', 'err');
           btn.disabled = false;
           btn.innerHTML = '💾 Guardar anuncio';
           return;
         }
-        payload.ad_banner_url = url;
       }
+
       const r = await fetch(`/chiripero/${session.profile_id}/anuncio`, {
         method: 'PATCH',
         headers: {'Content-Type':'application/json'},
@@ -309,13 +363,18 @@
       });
       const d = await r.json();
       if (!r.ok) return toast(d.error || 'Error guardando', 'err');
+      session = { ...session, ...d };
+      localStorage.setItem('chiripero_session', JSON.stringify(session));
       toast('✅ Anuncio actualizado correctamente');
       updateBannerPreview();
-    } catch(e) { toast('Error de conexión', 'err'); }
-    finally { btn.disabled = false; btn.innerHTML = '💾 Guardar anuncio'; }
+    } catch(e) {
+      toast('Error de conexión', 'err');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '💾 Guardar anuncio';
+    }
   });
 
-  // ─── Init ─────────────────────────────────────────────────────────
   loadAnuncio();
 </script>
 </body>
