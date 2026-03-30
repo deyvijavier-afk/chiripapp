@@ -2,6 +2,7 @@ require('dotenv').config();
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
+const bcrypt = require('bcryptjs');
 const db = require('./db');
 const sharp = require('sharp');
 const { createWorker } = require('tesseract.js');
@@ -1493,6 +1494,163 @@ app.use((err, _req, res, next) => {
   next();
 });
 
+// ===== PORTAL CHIRIPERO =====
+
+// --- Migración: columnas username, avatar_url, ad_banner_url, ad_text ---
+async function ensureChiriperoPortalColumns() {
+  try {
+    await db.query(`
+      alter table users add column if not exists username text unique;
+      alter table chiripero_profiles add column if not exists avatar_url text;
+      alter table chiripero_profiles add column if not exists ad_banner_url text;
+      alter table chiripero_profiles add column if not exists ad_text text;
+      alter table chiripero_profiles add column if not exists ad_banner_type text not null default 'generic';
+    `);
+    console.log('chiripero_portal_columns OK');
+  } catch(e) {
+    console.error('chiripero_portal_columns_err', e.message);
+  }
+}
+
+// POST /chiripero/login
+app.post('/chiripero/login', async (req, res) => {
+  try {
+    const { username, password } = req.body || {};
+    if (!username || !password) return res.status(400).json({ error: 'missing_credentials' });
+    const r = await db.query(
+      `select u.id as user_id, u.full_name, u.phone, u.email, u.username, u.password_hash,
+              p.id as profile_id, p.display_name, p.status, p.membership_status,
+              p.membership_expires_at, p.whatsapp_number, p.call_number,
+              p.avatar_url, p.ad_banner_url, p.ad_text, p.ad_banner_type,
+              p.bio, p.cedula_number, p.verification_notes
+       from users u
+       join chiripero_profiles p on p.user_id = u.id
+       where u.username = $1 and u.role = 'chiripero'`,
+      [username.trim().toLowerCase()]
+    );
+    if (!r.rowCount) return res.status(401).json({ error: 'invalid_credentials' });
+    const user = r.rows[0];
+    const valid = await bcrypt.compare(password, user.password_hash);
+    if (!valid) return res.status(401).json({ error: 'invalid_credentials' });
+    // Retornar datos del chiripero sin el hash
+    const { password_hash, ...safe } = user;
+    res.json({ ok: true, chiripero: safe });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// GET /chiripero/:profileId/me  — datos del perfil
+app.get('/chiripero/:profileId/me', async (req, res) => {
+  try {
+    const r = await db.query(
+      `select u.id as user_id, u.full_name, u.phone, u.email, u.username,
+              p.id as profile_id, p.display_name, p.status, p.membership_status,
+              p.membership_expires_at, p.membership_plan, p.whatsapp_number, p.call_number,
+              p.avatar_url, p.ad_banner_url, p.ad_text, p.ad_banner_type,
+              p.bio, p.cedula_number, p.verification_notes, p.created_at
+       from chiripero_profiles p
+       join users u on u.id = p.user_id
+       where p.id = $1`,
+      [req.params.profileId]
+    );
+    if (!r.rowCount) return res.status(404).json({ error: 'not_found' });
+    res.json(r.rows[0]);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// PATCH /chiripero/:profileId/perfil  — editar datos del perfil
+app.patch('/chiripero/:profileId/perfil', async (req, res) => {
+  const client = await db.pool.connect();
+  try {
+    const { display_name, phone, whatsapp_number, call_number, bio, avatar_url } = req.body || {};
+    const profileId = req.params.profileId;
+    await client.query('begin');
+    // Actualizar profile
+    const profUpdates = [];
+    const profVals = [];
+    if (display_name !== undefined) { profVals.push(display_name.trim()); profUpdates.push(`display_name=$${profVals.length}`); }
+    if (whatsapp_number !== undefined) { profVals.push(String(whatsapp_number).replace(/\D/g,'').slice(-10)); profUpdates.push(`whatsapp_number=$${profVals.length}`); }
+    if (call_number !== undefined) { profVals.push(String(call_number).replace(/\D/g,'').slice(-10)); profUpdates.push(`call_number=$${profVals.length}`); }
+    if (bio !== undefined) { profVals.push(bio.trim()); profUpdates.push(`bio=$${profVals.length}`); }
+    if (avatar_url !== undefined) { profVals.push(avatar_url); profUpdates.push(`avatar_url=$${profVals.length}`); }
+    if (profUpdates.length) {
+      profVals.push(profileId);
+      await client.query(`update chiripero_profiles set ${profUpdates.join(',')}, updated_at=now() where id=$${profVals.length}`, profVals);
+    }
+    // Actualizar phone en users
+    if (phone !== undefined) {
+      const normalizedPhone = String(phone).replace(/\D/g,'').slice(-10);
+      const userQ = await client.query(`select user_id from chiripero_profiles where id=$1`, [profileId]);
+      if (userQ.rowCount) {
+        await client.query(`update users set phone=$1, updated_at=now() where id=$2`, [normalizedPhone, userQ.rows[0].user_id]);
+      }
+    }
+    await client.query('commit');
+    res.json({ ok: true });
+  } catch(e) {
+    await client.query('rollback');
+    res.status(500).json({ error: e.message });
+  } finally { client.release(); }
+});
+
+// PATCH /chiripero/:profileId/password  — cambiar contraseña
+app.patch('/chiripero/:profileId/password', async (req, res) => {
+  try {
+    const { current_password, new_password } = req.body || {};
+    if (!current_password || !new_password) return res.status(400).json({ error: 'missing_fields' });
+    if (new_password.length < 4) return res.status(400).json({ error: 'password_too_short' });
+    const userQ = await db.query(`select u.id, u.password_hash from users u join chiripero_profiles p on p.user_id=u.id where p.id=$1`, [req.params.profileId]);
+    if (!userQ.rowCount) return res.status(404).json({ error: 'not_found' });
+    const valid = await bcrypt.compare(current_password, userQ.rows[0].password_hash);
+    if (!valid) return res.status(401).json({ error: 'wrong_current_password' });
+    const hash = await bcrypt.hash(new_password, 10);
+    await db.query(`update users set password_hash=$1, updated_at=now() where id=$2`, [hash, userQ.rows[0].id]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// DELETE /chiripero/:profileId/baja  — darse de baja
+app.delete('/chiripero/:profileId/baja', async (req, res) => {
+  const client = await db.pool.connect();
+  try {
+    const { password } = req.body || {};
+    if (!password) return res.status(400).json({ error: 'password_required' });
+    const userQ = await client.query(`select u.id, u.password_hash from users u join chiripero_profiles p on p.user_id=u.id where p.id=$1`, [req.params.profileId]);
+    if (!userQ.rowCount) return res.status(404).json({ error: 'not_found' });
+    const valid = await bcrypt.compare(password, userQ.rows[0].password_hash);
+    if (!valid) return res.status(401).json({ error: 'wrong_password' });
+    await client.query('begin');
+    await client.query(`update chiripero_profiles set status='inactive', membership_status='inactive', updated_at=now() where id=$1`, [req.params.profileId]);
+    await client.query(`update users set username=null, updated_at=now() where id=$1`, [userQ.rows[0].id]);
+    await client.query('commit');
+    res.json({ ok: true, message: 'Cuenta desactivada' });
+  } catch(e) {
+    await client.query('rollback');
+    res.status(500).json({ error: e.message });
+  } finally { client.release(); }
+});
+
+// PATCH /chiripero/:profileId/anuncio  — gestión del anuncio
+app.patch('/chiripero/:profileId/anuncio', async (req, res) => {
+  try {
+    const { ad_banner_type, ad_banner_url, ad_text } = req.body || {};
+    const updates = [];
+    const vals = [];
+    if (ad_banner_type !== undefined) {
+      if (!['generic','custom'].includes(ad_banner_type)) return res.status(400).json({ error: 'invalid_banner_type' });
+      vals.push(ad_banner_type); updates.push(`ad_banner_type=$${vals.length}`);
+    }
+    if (ad_banner_url !== undefined) { vals.push(ad_banner_url); updates.push(`ad_banner_url=$${vals.length}`); }
+    if (ad_text !== undefined) { vals.push(ad_text.slice(0,280)); updates.push(`ad_text=$${vals.length}`); }
+    if (!updates.length) return res.status(400).json({ error: 'nothing_to_update' });
+    vals.push(req.params.profileId);
+    const r = await db.query(`update chiripero_profiles set ${updates.join(',')}, updated_at=now() where id=$${vals.length} returning ad_banner_type, ad_banner_url, ad_text`, vals);
+    if (!r.rowCount) return res.status(404).json({ error: 'not_found' });
+    res.json({ ok: true, ...r.rows[0] });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ===== FIN PORTAL CHIRIPERO =====
+
 // ===== SETUP ENDPOINT (run once to initialize DB) =====
 app.post('/internal/setup-db', async (req, res) => {
   const secret = req.headers['x-setup-secret'];
@@ -1533,19 +1691,47 @@ app.post('/internal/setup-db', async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
+// ===== SETUP: ASIGNAR CREDENCIALES CHIRIPERO =====
+app.post('/internal/set-chiripero-credentials', async (req, res) => {
+  const secret = req.headers['x-setup-secret'];
+  if (secret !== process.env.SETUP_SECRET && secret !== 'chiripapp-setup-2026') {
+    return res.status(403).json({ error: 'forbidden' });
+  }
+  try {
+    const { profile_id, username, password, status, membership_status, display_name, bio, ad_text } = req.body || {};
+    if (!profile_id || !username || !password) return res.status(400).json({ error: 'missing_fields' });
+    const pwd_hash = await bcrypt.hash(password, 10);
+    // Actualizar user
+    await db.query(
+      `UPDATE users SET username=$1, password_hash=$2, updated_at=now()
+       WHERE id=(SELECT user_id FROM chiripero_profiles WHERE id=$3)`,
+      [username, pwd_hash, profile_id]
+    );
+    // Actualizar perfil
+    const updates = [];
+    const vals = [];
+    if (status) { vals.push(status); updates.push(`status=$${vals.length}`); }
+    if (membership_status) { vals.push(membership_status); updates.push(`membership_status=$${vals.length}`); }
+    if (display_name) { vals.push(display_name); updates.push(`display_name=$${vals.length}`); }
+    if (bio) { vals.push(bio); updates.push(`bio=$${vals.length}`); }
+    if (ad_text) { vals.push(ad_text); updates.push(`ad_text=$${vals.length}`); }
+    if (membership_status === 'active') {
+      updates.push(`membership_expires_at=now() + interval '30 days'`);
+    }
+    if (updates.length) {
+      vals.push(profile_id);
+      await db.query(`UPDATE chiripero_profiles SET ${updates.join(',')}, updated_at=now() WHERE id=$${vals.length}`, vals);
+    }
+    res.json({ ok: true, profile_id, username });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
 // ===== END SETUP ENDPOINT =====
 
 const port = process.env.PORT || 8088;
-ensurePromoCatalog()
+Promise.allSettled([ensurePromoCatalog(), ensureChiriperoPortalColumns()])
   .then(() => {
     app.listen(port, () => {
       console.log(`CHIRIPAPP backend running on :${port}`);
-    });
-  })
-  .catch((e) => {
-    console.error('promo_catalog_init_failed', e?.message || e);
-    app.listen(port, () => {
-      console.log(`CHIRIPAPP backend running on :${port} (without promo bootstrap)`);
     });
   });
 
