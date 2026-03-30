@@ -265,7 +265,7 @@ app.get('/chiriperos', async (_req, res) => {
              ), '[]') as zones
       from chiripero_profiles p
       join users u on u.id = p.user_id
-      where p.status in ('active','approved')
+      where p.status = 'approved'
       order by p.created_at desc
     `;
     const r = await db.query(q);
