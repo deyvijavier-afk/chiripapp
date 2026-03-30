@@ -251,16 +251,21 @@ app.get('/chiriperos', async (_req, res) => {
       select p.id, p.display_name, p.bio, p.avatar_url, p.ad_banner_url, p.ad_text,
              p.membership_status, p.status,
              u.full_name, u.phone,
-             coalesce(json_agg(distinct jsonb_build_object('id', s.id, 'name', s.name)) filter (where s.id is not null), '[]') as services,
-             coalesce(json_agg(distinct jsonb_build_object('id', z.id, 'name', z.name, 'city', z.city)) filter (where z.id is not null), '[]') as zones
+             coalesce((
+               select json_agg(distinct jsonb_build_object('id', s.id, 'name', s.name) order by jsonb_build_object('id', s.id, 'name', s.name))
+               from chiripero_services cs
+               join subcategories s on s.id = cs.subcategory_id
+               where cs.chiripero_profile_id = p.id
+             ), '[]') as services,
+             coalesce((
+               select json_agg(distinct jsonb_build_object('id', z.id, 'name', z.name, 'city', z.city) order by jsonb_build_object('id', z.id, 'name', z.name, 'city', z.city))
+               from chiripero_zones cz
+               join zones z on z.id = cz.zone_id
+               where cz.chiripero_profile_id = p.id
+             ), '[]') as zones
       from chiripero_profiles p
       join users u on u.id = p.user_id
-      left join chiripero_subcategories cs on cs.profile_id = p.id
-      left join subcategories s on s.id = cs.subcategory_id
-      left join chiripero_zones cz on cz.profile_id = p.id
-      left join zones z on z.id = cz.zone_id
-      where p.status = 'active'
-      group by p.id, u.full_name
+      where p.status in ('active','approved')
       order by p.created_at desc
     `;
     const r = await db.query(q);
