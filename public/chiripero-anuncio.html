@@ -59,7 +59,8 @@
     .field input:focus,.field textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(30,164,222,.12)}
     .field textarea{min-height:80px;resize:vertical}
     .file-picker{border:1.5px dashed #93c5fd;border-radius:14px;padding:14px;background:#f8fbff}
-    .file-picker input[type=file]{display:block;width:100%;padding:10px;background:#fff;border:1px solid var(--line);border-radius:11px}
+    .file-picker input[type=file]{display:none}
+    .file-actions{display:flex;gap:10px;flex-wrap:wrap}
     .file-meta{font-size:12px;color:#64748b;line-height:1.5;margin-top:8px}
     .char-count{font-size:11px;color:#94a3b8;text-align:right;margin-top:2px}
     .btn{border:none;border-radius:12px;padding:10px 16px;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;display:inline-flex;align-items:center;gap:7px;transition:opacity .15s}
@@ -159,9 +160,14 @@
       <div class="field" id="customBannerField" style="display:none">
         <label>Sube tu banner personalizado</label>
         <div class="file-picker">
+          <div class="file-actions">
+            <button type="button" class="btn btn-primary" id="btnTakePhoto">📷 Tomar foto</button>
+            <button type="button" class="btn btn-ghost" id="btnChooseFile">🗂️ Elegir archivo</button>
+          </div>
+          <input type="file" id="inputBannerCamera" accept="image/*" capture="environment"/>
           <input type="file" id="inputBannerFile" accept="image/*"/>
           <div class="file-meta" id="bannerFileMeta">
-            En celular puedes tomar una foto o elegirla de tu galería. En computadora se abrirá el explorador de archivos.<br/>
+            En celular puedes elegir entre tomar una foto o buscar una imagen en tu teléfono. En computadora usa "Elegir archivo".<br/>
             Formatos recomendados: JPG o PNG. Tamaño recomendado: 1200×400 px.
           </div>
         </div>
@@ -213,6 +219,9 @@
     window.location.href = '/demo/chiripero-login.html';
   });
 
+  document.getElementById('btnTakePhoto').addEventListener('click', () => document.getElementById('inputBannerCamera').click());
+  document.getElementById('btnChooseFile').addEventListener('click', () => document.getElementById('inputBannerFile').click());
+  document.getElementById('inputBannerCamera').addEventListener('change', handleBannerFileChange);
   document.getElementById('inputBannerFile').addEventListener('change', handleBannerFileChange);
 
   function toast(msg, type = 'ok') {
@@ -302,6 +311,7 @@
       if (d.avatar_url) document.getElementById('sidebarAvatar').src = d.avatar_url;
 
       const bannerType = d.ad_banner_type || 'generic';
+      document.getElementById('inputBannerCamera').value = '';
       document.getElementById('inputBannerFile').value = '';
       selectedBannerFile = null;
       if (customBannerPreviewUrl) {
