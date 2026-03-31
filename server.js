@@ -123,6 +123,21 @@ app.get('/zonas', async (_req, res) => {
   }
 });
 
+app.get('/servicios', async (_req, res) => {
+  try {
+    const r = await db.query(`
+      select s.id, s.name, s.category_id, c.name as category_name
+      from subcategories s
+      join categories c on c.id = s.category_id
+      where s.is_active = true and c.is_active = true
+      order by s.name
+    `);
+    res.json(r.rows);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 function extractCedula(text) {
   const m = text.match(/\b\d{3}[- ]?\d{7}[- ]?\d\b/);
   if (!m) return null;

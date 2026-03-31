@@ -135,7 +135,6 @@ async function init(){
   const [services,zones]=await Promise.all([fetch('/servicios').then(r=>r.json()),fetch('/zonas').then(r=>r.json())]);
   document.getElementById('service').innerHTML='<option value="">Selecciona</option>'+services.map(x=>`<option value="${x.id}">${x.name}</option>`).join('');
   document.getElementById('zone').innerHTML='<option value="">Selecciona</option>'+zones.map(x=>`<option value="${x.id}">${x.name}</option>`).join('');
-  document.getElementById('phone').addEventListener('blur',()=>{ if(!document.getElementById('whatsapp').value) document.getElementById('whatsapp').value=document.getElementById('phone').value; });
 
   bindPicker('frontPickBtn','cedula_front_file','frontStatus');
   bindPicker('backPickBtn','cedula_back_file','backStatus');
