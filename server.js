@@ -409,6 +409,67 @@ app.get('/admin/chiriperos', async (_req, res) => {
   }
 });
 
+app.get('/admin/chiriperos/:id', async (req, res) => {
+  try {
+    const r = await db.query(`
+      select p.id, p.status, p.membership_status, p.membership_plan, p.membership_expires_at,
+             p.created_at, p.updated_at, p.display_name, p.bio, p.cedula_number,
+             p.rating_avg, p.rating_count, p.whatsapp_number, p.call_number,
+             p.verification_notes,
+             coalesce((
+               select json_agg(jsonb_build_object(
+                 'doc_type', d.doc_type,
+                 'file_url', d.file_url,
+                 'review_status', d.review_status,
+                 'review_notes', d.review_notes,
+                 'uploaded_at', d.uploaded_at
+               ) order by d.uploaded_at desc)
+               from chiripero_documents d where d.chiripero_profile_id = p.id
+             ), '[]'::json) as documents,
+             coalesce((
+               select json_agg(jsonb_build_object('id', s.id, 'name', s.name) order by s.name)
+               from chiripero_services cs
+               join subcategories s on s.id = cs.subcategory_id
+               where cs.chiripero_profile_id = p.id
+             ), '[]'::json) as services,
+             coalesce((
+               select json_agg(jsonb_build_object('id', z.id, 'name', z.name, 'city', z.city) order by z.name)
+               from chiripero_zones cz
+               join zones z on z.id = cz.zone_id
+               where cz.chiripero_profile_id = p.id
+             ), '[]'::json) as zones,
+             (
+               select s2.name
+               from chiripero_services cs2
+               join subcategories s2 on s2.id = cs2.subcategory_id
+               where cs2.chiripero_profile_id = p.id
+               order by s2.name asc
+               limit 1
+             ) as primary_service
+      from chiripero_profiles p
+      where p.id = $1
+      limit 1
+    `, [req.params.id]);
+    if (!r.rowCount) return res.status(404).json({ error: 'not_found' });
+    const row = r.rows[0];
+    const docs = Array.isArray(row.documents) ? row.documents : [];
+    const pendingDocs = docs.filter(d => String(d.review_status || '').toLowerCase() === 'pending').length;
+    const rejectedDocs = docs.filter(d => String(d.review_status || '').toLowerCase() === 'rejected').length;
+    const documents_status = rejectedDocs > 0 ? 'rejected' : pendingDocs > 0 ? 'pending' : docs.length ? 'approved' : 'pending';
+    res.json({
+      ...row,
+      documents: docs,
+      services: Array.isArray(row.services) ? row.services : [],
+      zones: Array.isArray(row.zones) ? row.zones : [],
+      documents_status,
+      whatsapp_taps: 0,
+      call_taps: 0
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.post('/admin/chiriperos/:id/decision', async (req, res) => {
   const client = await db.pool.connect();
   try {
