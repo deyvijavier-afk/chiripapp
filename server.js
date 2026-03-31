@@ -411,6 +411,43 @@ app.get('/admin/chiriperos', async (_req, res) => {
   }
 });
 
+app.get('/admin/chiriperos/pending', async (_req, res) => {
+  try {
+    const r = await db.query(`
+      select p.id as profile_id, p.display_name, p.cedula_number, p.created_at,
+             p.status, p.membership_status,
+             p.whatsapp_number, p.call_number,
+             coalesce((
+               select json_agg(jsonb_build_object(
+                 'doc_type', d.doc_type,
+                 'file_url', d.file_url,
+                 'review_status', d.review_status,
+                 'uploaded_at', d.uploaded_at
+               ) order by d.uploaded_at desc)
+               from chiripero_documents d where d.chiripero_profile_id = p.id
+             ), '[]'::json) as documents
+      from chiripero_profiles p
+      where p.status = 'pending'
+      order by p.created_at desc
+    `);
+    const rows = r.rows.map(row => {
+      const documents = Array.isArray(row.documents) ? row.documents : [];
+      const pendingDocs = documents.filter(d => String(d.review_status || '').toLowerCase() === 'pending').length;
+      const rejectedDocs = documents.filter(d => String(d.review_status || '').toLowerCase() === 'rejected').length;
+      const documents_status = rejectedDocs > 0 ? 'rejected' : pendingDocs > 0 ? 'pending' : documents.length ? 'approved' : 'pending';
+      return {
+        ...row,
+        documents,
+        documents_status,
+        whatsapp_number: row.whatsapp_number || row.call_number || null
+      };
+    });
+    res.json(rows);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.get('/admin/chiriperos/:id', async (req, res) => {
   try {
     const r = await db.query(`
