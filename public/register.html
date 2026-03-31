@@ -152,6 +152,32 @@ function resetForm(){
   document.getElementById('status').textContent='Formulario limpiado.';
 }
 
+async function fileToDataUrl(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(reader.result);
+    reader.onerror=()=>reject(reader.error||new Error('file_read_error'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadDocument(file, docType){
+  const fileBase64 = await fileToDataUrl(file);
+  const resp = await fetch('/chiripero/document-upload', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      fileBase64,
+      fileName:file.name,
+      docType,
+      contentType:file.type || null
+    })
+  });
+  const data = await resp.json().catch(()=>({error:'upload_error'}));
+  if(!resp.ok || !data.file_url) throw new Error(data.error || 'upload_error');
+  return data.file_url;
+}
+
 async function submitForm(){
   const status=document.getElementById('status'); status.textContent='Enviando...';
   const cedFront=(document.getElementById('cedula_front_file').files||[])[0];
@@ -160,27 +186,40 @@ async function submitForm(){
   const person=(document.getElementById('person_file').files||[])[0];
   if(!cedFront||!cedBack||!buena){ status.innerHTML='<span class="warn">Faltan documentos: cédula frente + cédula dorso + buena conducta.</span>'; return; }
 
-  const payload={
-    first_name:document.getElementById('first_name').value.trim(),
-    last_name:document.getElementById('last_name').value.trim(),
-    full_name:`${document.getElementById('first_name').value.trim()} ${document.getElementById('last_name').value.trim()}`.trim(),
-    cedula_number:document.getElementById('cedula_number').value.trim(),
-    address:document.getElementById('address').value.trim(),
-    birth_date:document.getElementById('birth_date').value||null,
-    phone:document.getElementById('phone').value.trim(),
-    whatsapp:document.getElementById('whatsapp').value.trim(),
-    service_id:document.getElementById('service').value,
-    zone_id:document.getElementById('zone').value,
-    cedula_file_url:`upload://${cedFront.name}`,
-    cedula_back_file_url:`upload://${cedBack.name}`,
-    buena_conducta_file_url:`upload://${buena.name}`,
-    person_photo_url:person?`upload://${person.name}`:null
-  };
+  try {
+    status.textContent='Subiendo documentos...';
+    const [cedulaFrontUrl, cedulaBackUrl, buenaUrl, personUrl] = await Promise.all([
+      uploadDocument(cedFront, 'cedula_front'),
+      uploadDocument(cedBack, 'cedula_back'),
+      uploadDocument(buena, 'buena_conducta'),
+      person ? uploadDocument(person, 'person_photo') : Promise.resolve(null)
+    ]);
 
-  const r=await fetch('/chiriperos/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-  const out=await r.json().catch(()=>({error:'error'}));
-  if(!r.ok){ status.innerHTML=`<span class="warn">No se pudo enviar: ${out.error||'error'}</span>`; return; }
-  status.innerHTML='<span class="ok">✅ Solicitud enviada correctamente.</span>';
+    status.textContent='Guardando solicitud...';
+    const payload={
+      first_name:document.getElementById('first_name').value.trim(),
+      last_name:document.getElementById('last_name').value.trim(),
+      full_name:`${document.getElementById('first_name').value.trim()} ${document.getElementById('last_name').value.trim()}`.trim(),
+      cedula_number:document.getElementById('cedula_number').value.trim(),
+      address:document.getElementById('address').value.trim(),
+      birth_date:document.getElementById('birth_date').value||null,
+      phone:document.getElementById('phone').value.trim(),
+      whatsapp:document.getElementById('whatsapp').value.trim(),
+      service_id:document.getElementById('service').value,
+      zone_id:document.getElementById('zone').value,
+      cedula_file_url:cedulaFrontUrl,
+      cedula_back_file_url:cedulaBackUrl,
+      buena_conducta_file_url:buenaUrl,
+      person_photo_url:personUrl
+    };
+
+    const r=await fetch('/chiriperos/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const out=await r.json().catch(()=>({error:'error'}));
+    if(!r.ok){ status.innerHTML=`<span class="warn">No se pudo enviar: ${out.error||'error'}</span>`; return; }
+    status.innerHTML='<span class="ok">✅ Solicitud enviada correctamente.</span>';
+  } catch (e) {
+    status.innerHTML=`<span class="warn">No se pudo enviar: ${e.message||'error'}</span>`;
+  }
 }
 
 init();

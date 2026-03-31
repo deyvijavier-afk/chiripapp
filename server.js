@@ -73,7 +73,9 @@ async function visionExtractCedula(imageBase64) {
 const app = express();
 const uploadsRoot = path.join(__dirname, 'public', 'uploads');
 const chiriperoBannerDir = path.join(uploadsRoot, 'chiriperos', 'banners');
+const chiriperoDocsDir = path.join(uploadsRoot, 'chiriperos', 'documents');
 fs.mkdirSync(chiriperoBannerDir, { recursive: true });
+fs.mkdirSync(chiriperoDocsDir, { recursive: true });
 
 app.use(cors());
 app.use(express.json({ limit: '20mb' }));
@@ -1217,6 +1219,53 @@ app.delete('/chiripero/:profileId/baja', async (req, res) => {
     await client.query('rollback');
     res.status(500).json({ error: e.message });
   } finally { client.release(); }
+});
+
+app.post('/chiripero/document-upload', async (req, res) => {
+  try {
+    const { fileBase64, fileName, docType, contentType } = req.body || {};
+    if (!fileBase64) return res.status(400).json({ error: 'file_required' });
+    if (!fileName) return res.status(400).json({ error: 'file_name_required' });
+
+    const normalized = String(fileBase64).replace(/^data:[^;]+;base64,/, '');
+    const inputBuffer = Buffer.from(normalized, 'base64');
+    if (!inputBuffer.length) return res.status(400).json({ error: 'invalid_file' });
+    if (inputBuffer.length > 12 * 1024 * 1024) return res.status(413).json({ error: 'file_too_large' });
+
+    const originalExt = path.extname(String(fileName || '')).toLowerCase();
+    const safeBase = String(fileName || 'documento')
+      .toLowerCase()
+      .replace(/[^a-z0-9._-]+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')
+      .slice(0, 80) || 'documento';
+
+    let finalExt = originalExt;
+    if (!finalExt) {
+      if (String(contentType || '').includes('pdf')) finalExt = '.pdf';
+      else finalExt = '.jpg';
+    }
+
+    const finalName = `${Date.now()}-${String(docType || 'doc').replace(/[^a-z0-9_-]+/gi,'-')}-${safeBase.replace(/\.[^.]+$/, '')}${finalExt}`;
+    const outputPath = path.join(chiriperoDocsDir, finalName);
+
+    if (finalExt === '.pdf') {
+      fs.writeFileSync(outputPath, inputBuffer);
+    } else {
+      await sharp(inputBuffer)
+        .rotate()
+        .resize({ width: 1800, height: 1800, fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: 84 })
+        .toFile(outputPath.replace(/\.[^.]+$/, '.jpg'));
+      finalExt = '.jpg';
+    }
+
+    const finalStoredName = finalExt === '.jpg' ? finalName.replace(/\.[^.]+$/, '.jpg') : finalName;
+    const publicUrl = `/uploads/chiriperos/documents/${finalStoredName}`;
+    res.json({ ok: true, file_url: publicUrl });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 app.post('/chiripero/:profileId/anuncio/banner', async (req, res) => {
