@@ -612,7 +612,6 @@ app.post('/chiriperos/register', async (req, res) => {
       ...(cedula_file_url ? [{ doc_type: 'cedula_front', file_url: cedula_file_url }] : []),
       ...(cedula_back_file_url ? [{ doc_type: 'cedula_back', file_url: cedula_back_file_url }] : []),
       ...(buena_conducta_file_url ? [{ doc_type: 'buena_conducta', file_url: buena_conducta_file_url }] : []),
-      ...(person_photo_url ? [{ doc_type: 'person_photo', file_url: person_photo_url }] : [])
     ];
 
     for (const doc of normalizedDocs) {
