@@ -302,7 +302,7 @@ async function openProfileModal(id){
   const x = await fetch('/chiriperos/' + id).then(r => r.json());
   const primaryService = (x.services && x.services[0] && x.services[0].name) ? x.services[0].name : 'Servicio general';
 
-  document.getElementById('mCover').src = serviceArt(primaryService);
+  document.getElementById('mCover').src = x.ad_banner_type === 'custom' && x.ad_banner_url ? x.ad_banner_url : serviceArt(primaryService);
   document.getElementById('mName').textContent = x.display_name;
   document.getElementById('mBio').textContent = x.bio || 'Sin descripción';
   document.getElementById('mChips').innerHTML = `
@@ -380,7 +380,7 @@ async function loadChiriperos(){
     const el = document.createElement('article');
     el.className = 'card';
     el.setAttribute('data-id', x.id);
-    const img = serviceArt(x.primary_service);
+    const img = x.ad_banner_type === 'custom' && x.ad_banner_url ? x.ad_banner_url : serviceArt(x.primary_service);
     const fav = isFav(x.id);
     el.innerHTML = `
       <div class="thumb-wrap">

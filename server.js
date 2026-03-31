@@ -245,11 +245,52 @@ app.post('/ai/extract-cedula', async (req, res) => {
   }
 });
 
-app.get('/chiriperos', async (_req, res) => {
+app.get('/chiriperos', async (req, res) => {
   try {
-    const q = `
+    const { subcategory_id, zone_id, q } = req.query || {};
+    const vals = [];
+    const filters = [`p.status = 'approved'`];
+
+    if (subcategory_id) {
+      vals.push(subcategory_id);
+      filters.push(`exists (
+        select 1 from chiripero_services csf
+        where csf.chiripero_profile_id = p.id and csf.subcategory_id = $${vals.length}
+      )`);
+    }
+
+    if (zone_id) {
+      vals.push(zone_id);
+      filters.push(`exists (
+        select 1 from chiripero_zones czf
+        where czf.chiripero_profile_id = p.id and czf.zone_id = $${vals.length}
+      )`);
+    }
+
+    if (q) {
+      vals.push(`%${String(q).trim()}%`);
+      const idx = vals.length;
+      filters.push(`(
+        p.display_name ilike $${idx}
+        or coalesce(p.bio, '') ilike $${idx}
+        or u.full_name ilike $${idx}
+        or exists (
+          select 1 from chiripero_services csq
+          join subcategories sq on sq.id = csq.subcategory_id
+          where csq.chiripero_profile_id = p.id and sq.name ilike $${idx}
+        )
+        or exists (
+          select 1 from chiripero_zones czq
+          join zones zq on zq.id = czq.zone_id
+          where czq.chiripero_profile_id = p.id and zq.name ilike $${idx}
+        )
+      )`);
+    }
+
+    const qSql = `
       select p.id, p.display_name, p.bio, p.avatar_url, p.ad_banner_url, p.ad_text,
-             p.membership_status, p.status,
+             p.membership_status, p.status, p.rating_avg, p.rating_count,
+             p.whatsapp_number, p.call_number,
              u.full_name, u.phone,
              coalesce((
                select json_agg(distinct jsonb_build_object('id', s.id, 'name', s.name) order by jsonb_build_object('id', s.id, 'name', s.name))
@@ -262,14 +303,27 @@ app.get('/chiriperos', async (_req, res) => {
                from chiripero_zones cz
                join zones z on z.id = cz.zone_id
                where cz.chiripero_profile_id = p.id
-             ), '[]') as zones
+             ), '[]') as zones,
+             (
+               select s2.name
+               from chiripero_services cs2
+               join subcategories s2 on s2.id = cs2.subcategory_id
+               where cs2.chiripero_profile_id = p.id
+               order by s2.name asc
+               limit 1
+             ) as primary_service
       from chiripero_profiles p
       join users u on u.id = p.user_id
-      where p.status = 'approved'
+      where ${filters.join(' and ')}
       order by p.created_at desc
     `;
-    const r = await db.query(q);
-    res.json(r.rows);
+    const r = await db.query(qSql, vals);
+    res.json(r.rows.map(row => ({
+      ...row,
+      whatsapp_number: row.whatsapp_number || row.phone,
+      call_number: row.call_number || row.phone,
+      primary_service: row.primary_service || (row.services?.[0]?.name ?? null)
+    })));
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -281,26 +335,27 @@ app.get('/chiriperos/:id', async (req, res) => {
       select p.*, u.full_name, u.phone, u.email,
         (
           select json_agg(jsonb_build_object('id', s.id, 'name', s.name) order by s.name)
-          from chiripero_subcategories cs
+          from chiripero_services cs
           join subcategories s on s.id = cs.subcategory_id
-          where cs.profile_id = p.id
+          where cs.chiripero_profile_id = p.id
         ) as services,
         (
           select json_agg(jsonb_build_object('id', z.id, 'name', z.name, 'city', z.city) order by z.name)
           from chiripero_zones cz
           join zones z on z.id = cz.zone_id
-          where cz.profile_id = p.id
+          where cz.chiripero_profile_id = p.id
         ) as zones,
-        (
-          select json_agg(jsonb_build_object('doc_type', d.doc_type, 'file_url', d.file_url, 'review_status', d.review_status) order by d.uploaded_at desc)
-          from chiripero_documents d where d.profile_id = p.id
-        ) as documents
+        '[]'::json as documents
       from chiripero_profiles p
       join users u on u.id = p.user_id
       where p.id = $1
     `, [req.params.id]);
     if (!r.rowCount) return res.status(404).json({ error: 'not_found' });
-    res.json(r.rows[0]);
+    res.json({
+      ...r.rows[0],
+      whatsapp_number: r.rows[0].whatsapp_number || r.rows[0].phone,
+      call_number: r.rows[0].call_number || r.rows[0].phone
+    });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
