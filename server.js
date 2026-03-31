@@ -364,21 +364,41 @@ app.get('/chiriperos/:id', async (req, res) => {
 app.get('/admin/chiriperos', async (_req, res) => {
   try {
     const r = await db.query(`
-      select p.id, p.status, p.membership_status, p.created_at,
-             p.display_name, p.bio, p.cedula_number,
+      select p.id, p.status, p.membership_status, p.membership_plan, p.membership_expires_at, p.created_at,
+             p.display_name, p.bio, p.cedula_number, p.rating_avg, p.rating_count,
              u.full_name, u.phone, u.email,
              (
-               select json_agg(jsonb_build_object(
+               select coalesce(json_agg(jsonb_build_object(
                  'doc_type', d.doc_type,
                  'file_url', d.file_url,
                  'review_status', d.review_status,
                  'uploaded_at', d.uploaded_at
-               ) order by d.uploaded_at desc)
+               ) order by d.uploaded_at desc), '[]'::json)
                from chiripero_documents d where d.chiripero_profile_id = p.id
              ) as documents,
              (
                select count(*) from chiripero_documents d where d.chiripero_profile_id = p.id
-             ) as docs_count
+             ) as docs_count,
+             (
+               select coalesce(json_agg(jsonb_build_object('id', s.id, 'name', s.name) order by s.name), '[]'::json)
+               from chiripero_services cs
+               join subcategories s on s.id = cs.subcategory_id
+               where cs.chiripero_profile_id = p.id
+             ) as services,
+             (
+               select coalesce(json_agg(jsonb_build_object('id', z.id, 'name', z.name, 'city', z.city) order by z.name), '[]'::json)
+               from chiripero_zones cz
+               join zones z on z.id = cz.zone_id
+               where cz.chiripero_profile_id = p.id
+             ) as zones,
+             (
+               select s2.name
+               from chiripero_services cs2
+               join subcategories s2 on s2.id = cs2.subcategory_id
+               where cs2.chiripero_profile_id = p.id
+               order by s2.name asc
+               limit 1
+             ) as primary_service
       from chiripero_profiles p
       join users u on u.id = p.user_id
       order by p.created_at desc
