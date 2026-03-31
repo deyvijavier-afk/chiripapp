@@ -146,7 +146,7 @@
     <section class="hero">
       <h1>Contrata chiriperos confiables en minutos</h1>
       <p>Encuentra técnicos y servicios cerca de ti. Contacto directo por WhatsApp o llamada.</p>
-
+      <div class="quick-cats" id="heroStats"></div>
       <div id="quickCats" class="quick-cats"></div>
 
       <div class="search">
@@ -348,6 +348,24 @@ favFilterBtn.addEventListener('click', () => {
   loadChiriperos();
 });
 
+function renderHeroStats(data){
+  const wrap = document.getElementById('heroStats');
+  if (!wrap) return;
+  const uniqueServices = new Set();
+  const uniqueZones = new Set();
+  data.forEach(x => {
+    (x.services || []).forEach(s => uniqueServices.add(s.name));
+    (x.zones || []).forEach(z => uniqueZones.add(z.name));
+  });
+  const avgRating = data.length ? (data.reduce((sum, x) => sum + Number(x.rating_avg || 0), 0) / data.length).toFixed(2) : '0.00';
+  wrap.innerHTML = `
+    <span class="cat-chip">⭐ Rating promedio: ${avgRating}</span>
+    <span class="cat-chip">🛠 Servicios: ${uniqueServices.size}</span>
+    <span class="cat-chip">👷 Chiriperos: ${data.length}</span>
+    <span class="cat-chip">📍 Zonas: ${uniqueZones.size}</span>
+  `;
+}
+
 async function loadChiriperos(){
   const subcategory_id = document.getElementById('subcategory').value;
   const zone_id = document.getElementById('zone').value;
@@ -363,6 +381,7 @@ async function loadChiriperos(){
     const favs = new Set(getFavs());
     data = data.filter(x => favs.has(x.id));
   }
+  renderHeroStats(data);
   const list = document.getElementById('list');
   const count = document.getElementById('count');
   count.textContent = `${data.length} resultado${data.length===1?'':'s'}`;

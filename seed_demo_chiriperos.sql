@@ -35,8 +35,20 @@ select
   now() + interval '30 days',
   u.phone,
   u.phone,
-  (4 + random())::numeric(3,2),
-  (20 + floor(random()*80))::int
+  case
+    when u.full_name='José Electric' then 4.90
+    when u.full_name='María Plomería' then 4.85
+    when u.full_name='Kelvin Limpieza' then 4.80
+    when u.full_name='Andrés Pintura' then 4.75
+    else 4.95
+  end,
+  case
+    when u.full_name='José Electric' then 128
+    when u.full_name='María Plomería' then 94
+    when u.full_name='Kelvin Limpieza' then 76
+    when u.full_name='Andrés Pintura' then 81
+    else 143
+  end
 from ins_users u
 on conflict (user_id) do update
 set status='approved', membership_status='active', membership_plan='monthly_1500', membership_expires_at=now()+interval '30 days';

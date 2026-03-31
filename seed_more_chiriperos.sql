@@ -54,8 +54,36 @@ select
   now() + interval '14 days',
   t.phone,
   t.phone,
-  (4 + random())::numeric(3,2),
-  (10 + floor(random()*90))::int
+  case t.service_name
+    when 'Electricista' then 4.88
+    when 'Plomero' then 4.82
+    when 'Servicio de limpieza' then 4.79
+    when 'Limpieza de sépticos' then 4.73
+    when 'Limpiador de cisternas y piscina' then 4.77
+    when 'Pintor' then 4.81
+    when 'Albañil' then 4.74
+    when 'Técnico A/C' then 4.92
+    when 'Gomero' then 4.69
+    when 'Chofer' then 4.76
+    when 'Técnico informático' then 4.84
+    when 'Cerrajero' then 4.86
+    else 4.70
+  end,
+  case t.service_name
+    when 'Electricista' then 118
+    when 'Plomero' then 104
+    when 'Servicio de limpieza' then 87
+    when 'Limpieza de sépticos' then 52
+    when 'Limpiador de cisternas y piscina' then 61
+    when 'Pintor' then 79
+    when 'Albañil' then 66
+    when 'Técnico A/C' then 132
+    when 'Gomero' then 48
+    when 'Chofer' then 57
+    when 'Técnico informático' then 73
+    when 'Cerrajero' then 69
+    else 40
+  end
 from tmp_seed_chiriperos t
 join users u on u.email=t.email
 on conflict (user_id) do update
