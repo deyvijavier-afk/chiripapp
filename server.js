@@ -557,7 +557,14 @@ app.post('/chiriperos/register', async (req, res) => {
       display_name, bio,
       cedula_number,
       services = [], zones = [],
-      docs = []
+      docs = [],
+      cedula_file_url,
+      cedula_back_file_url,
+      buena_conducta_file_url,
+      person_photo_url,
+      whatsapp,
+      address,
+      birth_date
     } = req.body || {};
 
     if (!full_name || !phone) return res.status(400).json({ error: 'missing_required_fields' });
@@ -572,10 +579,17 @@ app.post('/chiriperos/register', async (req, res) => {
     const userId = userInsert.rows[0].id;
 
     const profileInsert = await client.query(
-      `insert into chiripero_profiles (user_id, display_name, bio, cedula_number, status, membership_status)
-       values ($1, $2, $3, $4, 'pending', 'inactive')
+      `insert into chiripero_profiles (user_id, display_name, bio, cedula_number, status, membership_status, whatsapp_number, call_number)
+       values ($1, $2, $3, $4, 'pending', 'inactive', $5, $6)
        returning id`,
-      [userId, display_name || full_name.trim(), bio || null, cedula_number || null]
+      [
+        userId,
+        display_name || full_name.trim(),
+        bio || address || null,
+        cedula_number || null,
+        whatsapp ? String(whatsapp).replace(/\D/g,'').slice(-10) : String(phone).replace(/\D/g,'').slice(-10),
+        String(phone).replace(/\D/g,'').slice(-10)
+      ]
     );
     const profileId = profileInsert.rows[0].id;
 
@@ -593,7 +607,16 @@ app.post('/chiriperos/register', async (req, res) => {
       );
     }
 
-    for (const doc of docs) {
+    const normalizedDocs = [
+      ...docs,
+      ...(cedula_file_url ? [{ doc_type: 'cedula_front', file_url: cedula_file_url }] : []),
+      ...(cedula_back_file_url ? [{ doc_type: 'cedula_back', file_url: cedula_back_file_url }] : []),
+      ...(buena_conducta_file_url ? [{ doc_type: 'buena_conducta', file_url: buena_conducta_file_url }] : []),
+      ...(person_photo_url ? [{ doc_type: 'person_photo', file_url: person_photo_url }] : [])
+    ];
+
+    for (const doc of normalizedDocs) {
+      if (!doc?.doc_type || !doc?.file_url) continue;
       await client.query(
         `insert into chiripero_documents (chiripero_profile_id, doc_type, file_url, review_status)
          values ($1, $2, $3, 'pending')`,
