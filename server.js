@@ -374,10 +374,10 @@ app.get('/admin/chiriperos', async (_req, res) => {
                  'review_status', d.review_status,
                  'uploaded_at', d.uploaded_at
                ) order by d.uploaded_at desc)
-               from chiripero_documents d where d.profile_id = p.id
+               from chiripero_documents d where d.chiripero_profile_id = p.id
              ) as documents,
              (
-               select count(*) from chiripero_documents d where d.profile_id = p.id
+               select count(*) from chiripero_documents d where d.chiripero_profile_id = p.id
              ) as docs_count
       from chiripero_profiles p
       join users u on u.id = p.user_id
@@ -392,16 +392,16 @@ app.get('/admin/chiriperos', async (_req, res) => {
 app.post('/admin/chiriperos/:id/decision', async (req, res) => {
   const client = await db.pool.connect();
   try {
-    const { decision, notes } = req.body || {};
+    const { decision, note, notes } = req.body || {};
     if (!['approved', 'rejected'].includes(decision)) return res.status(400).json({ error: 'invalid_decision' });
     await client.query('begin');
-    const newStatus = decision === 'approved' ? 'active' : 'rejected';
+    const newStatus = decision === 'approved' ? 'approved' : 'rejected';
     await client.query(
       `update chiripero_profiles set status=$1, verification_notes=$2, updated_at=now() where id=$3`,
-      [newStatus, notes || null, req.params.id]
+      [newStatus, note || notes || null, req.params.id]
     );
     await client.query(
-      `update chiripero_documents set review_status=$1 where profile_id=$2 and review_status='pending'`,
+      `update chiripero_documents set review_status=$1 where chiripero_profile_id=$2 and review_status='pending'`,
       [decision, req.params.id]
     );
     await client.query('commit');
@@ -446,21 +446,21 @@ app.post('/chiriperos/register', async (req, res) => {
 
     for (const subcategoryId of services) {
       await client.query(
-        `insert into chiripero_subcategories (profile_id, subcategory_id) values ($1, $2) on conflict do nothing`,
+        `insert into chiripero_services (chiripero_profile_id, subcategory_id) values ($1, $2) on conflict do nothing`,
         [profileId, subcategoryId]
       );
     }
 
     for (const zoneId of zones) {
       await client.query(
-        `insert into chiripero_zones (profile_id, zone_id) values ($1, $2) on conflict do nothing`,
+        `insert into chiripero_zones (chiripero_profile_id, zone_id) values ($1, $2) on conflict do nothing`,
         [profileId, zoneId]
       );
     }
 
     for (const doc of docs) {
       await client.query(
-        `insert into chiripero_documents (profile_id, doc_type, file_url, review_status)
+        `insert into chiripero_documents (chiripero_profile_id, doc_type, file_url, review_status)
          values ($1, $2, $3, 'pending')`,
         [profileId, doc.doc_type, doc.file_url]
       );
@@ -504,9 +504,51 @@ async function ensurePromoCatalog() {
         created_at timestamptz not null default now()
       );
     `);
+
+    await db.query(`alter table promo_codes add column if not exists id serial`);
+    await db.query(`alter table promo_codes add column if not exists discount_percent numeric(5,2) not null default 0`);
+    await db.query(`alter table promo_codes add column if not exists active boolean not null default true`);
+    await db.query(`alter table promo_codes add column if not exists expires_at timestamptz`);
+    await db.query(`alter table promo_codes add column if not exists max_uses int`);
+    await db.query(`alter table promo_codes add column if not exists times_used int not null default 0`);
+    await db.query(`alter table promo_codes add column if not exists created_at timestamptz not null default now()`);
+
+    await db.query(`
+      do $$
+      begin
+        if exists (
+          select 1
+          from information_schema.columns
+          where table_name='promo_codes' and column_name='discount_value'
+        ) then
+          update promo_codes
+          set discount_percent = coalesce(discount_percent, discount_value, 0)
+          where discount_percent = 0 and discount_value is not null;
+        end if;
+      end $$;
+    `);
+
+    await db.query(`
+      do $$
+      begin
+        if not exists (
+          select 1
+          from pg_constraint
+          where conrelid = 'promo_codes'::regclass
+            and contype = 'p'
+        ) then
+          alter table promo_codes add primary key (id);
+        end if;
+      exception when others then null;
+      end $$;
+    `);
+
     const exists = await db.query(`select 1 from promo_codes where code='AIREFINO10' limit 1`);
     if (!exists.rowCount) {
-      await db.query(`insert into promo_codes (code, discount_percent, active) values ('AIREFINO10', 10, true)`);
+      await db.query(`
+        insert into promo_codes (code, discount_percent, discount_type, discount_value, active)
+        values ('AIREFINO10', 10, 'percent', 10, true)
+      `);
     }
     console.log('promo_catalog OK');
   } catch (e) {
@@ -522,35 +564,112 @@ app.get('/membership/plans', async (_req, res) => {
   ]);
 });
 
+app.get('/promo-codes/validate', async (req, res) => {
+  try {
+    const { code, amount } = req.query || {};
+    const normalized = String(code || '').trim().toUpperCase();
+    if (!normalized) return res.json({ valid: false, reason: 'missing_code' });
+    const promo = await db.query(
+      `select discount_percent, active, expires_at, max_uses, times_used
+       from promo_codes
+       where code=$1`,
+      [normalized]
+    );
+    if (!promo.rowCount) return res.json({ valid: false, reason: 'not_found' });
+    const row = promo.rows[0];
+    if (!row.active) return res.json({ valid: false, reason: 'inactive' });
+    if (row.expires_at && new Date(row.expires_at) < new Date()) return res.json({ valid: false, reason: 'expired' });
+    const maxUses = row.max_uses == null ? null : Number(row.max_uses);
+    const timesUsed = Number(row.times_used || 0);
+    if (maxUses !== null && timesUsed >= maxUses) return res.json({ valid: false, reason: 'usage_limit_reached' });
+    const percent = Number(row.discount_percent || 0);
+    const amountValue = Number(amount);
+    const safeAmount = Number.isNaN(amountValue) ? 0 : amountValue;
+    const discountAmount = Math.max(0, safeAmount * percent / 100);
+    res.json({
+      valid: true,
+      percent,
+      discountAmount,
+      code: normalized,
+      expires_at: row.expires_at,
+      max_uses: maxUses,
+      times_used: timesUsed,
+      remaining_uses: maxUses === null ? null : Math.max(0, maxUses - timesUsed)
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.post('/chiriperos/:id/membership-submit', async (req, res) => {
   const client = await db.pool.connect();
   try {
-    const { plan_id, payment_method, payment_reference, proof_url, promo_code } = req.body || {};
-    if (!plan_id || !payment_method || !payment_reference || !proof_url) return res.status(400).json({ error: 'missing_fields' });
+    const { plan_code, payment_method, payment_reference, proof_url, payment_proof_url, amount, promo_code } = req.body || {};
+    const proof = proof_url || payment_proof_url;
+    const plan = String(plan_code || '').trim();
+    if (!plan || !payment_method || !payment_reference || !proof) return res.status(400).json({ error: 'missing_fields' });
 
-    let price = 0;
-    let durationDays = 0;
-    if (plan_id === 'weekly') { price = 300; durationDays = 7; }
-    else if (plan_id === 'monthly') { price = 1000; durationDays = 30; }
-    else if (plan_id === 'quarterly') { price = 2500; durationDays = 90; }
-    else return res.status(400).json({ error: 'invalid_plan' });
+    const planMap = {
+      weekly: { amount: 300, days: 7 },
+      monthly: { amount: 1000, days: 30 },
+      quarterly: { amount: 2500, days: 90 },
+    };
+    const pickedPlan = planMap[plan];
+    if (!pickedPlan) return res.status(400).json({ error: 'invalid_plan' });
 
     let discountPercent = 0;
+    let normalizedPromoCode = null;
+    let promoMeta = null;
     if (promo_code) {
-      const promo = await client.query(`select discount_percent from promo_codes where code=$1 and active=true`, [String(promo_code).trim().toUpperCase()]);
-      if (promo.rowCount) discountPercent = Number(promo.rows[0].discount_percent || 0);
+      normalizedPromoCode = String(promo_code).trim().toUpperCase();
+      const promo = await client.query(
+        `select code, discount_percent, active, expires_at, max_uses, times_used
+         from promo_codes
+         where code=$1`,
+        [normalizedPromoCode]
+      );
+      if (promo.rowCount) {
+        const row = promo.rows[0];
+        const maxUses = row.max_uses == null ? null : Number(row.max_uses);
+        const timesUsed = Number(row.times_used || 0);
+        const expired = row.expires_at && new Date(row.expires_at) < new Date();
+        const exhausted = maxUses !== null && timesUsed >= maxUses;
+        if (row.active && !expired && !exhausted) {
+          discountPercent = Number(row.discount_percent || 0);
+          promoMeta = { code: row.code, timesUsed, maxUses };
+        }
+      }
     }
-    const finalPrice = Math.max(0, price - (price * discountPercent / 100));
+    const baseAmount = Number.isFinite(Number(amount)) && Number(amount) > 0 ? Number(amount) : pickedPlan.amount;
+    const discountAmount = Math.max(0, baseAmount * discountPercent / 100);
+    const finalPrice = Math.max(0, baseAmount - discountAmount);
 
     await client.query('begin');
-    const r = await client.query(
-      `insert into memberships (profile_id, plan_id, status, payment_method, payment_reference, proof_url, amount_paid, duration_days)
-       values ($1, $2, 'pending', $3, $4, $5, $6, $7)
-       returning id, status`,
-      [req.params.id, plan_id, payment_method, payment_reference, proof_url, finalPrice, durationDays]
+    const payment = await client.query(
+      `insert into membership_payments (
+         chiripero_profile_id, plan_code, amount, discount_amount, amount_final,
+         payment_method, payment_reference, proof_url, status
+       ) values ($1, $2, $3, $4, $5, $6, $7, $8, 'submitted')
+       returning id, status, amount_final`,
+      [req.params.id, plan, baseAmount, discountAmount, finalPrice, payment_method, payment_reference, proof]
     );
+
+    if (discountPercent > 0 && promoMeta) {
+      await client.query(
+        `insert into promo_redemptions (code, chiripero_profile_id, membership_payment_id, discount_percent, discount_amount)
+         values ($1, $2, $3, $4, $5)`,
+        [promoMeta.code, req.params.id, payment.rows[0].id, discountPercent, discountAmount]
+      );
+      await client.query(
+        `update promo_codes
+         set times_used = coalesce(times_used, 0) + 1
+         where code = $1`,
+        [promoMeta.code]
+      );
+    }
+
     await client.query('commit');
-    res.json({ ok: true, membership: r.rows[0], final_price: finalPrice, discount_percent: discountPercent });
+    res.json({ ok: true, payment: payment.rows[0], final_price: finalPrice, discount_percent: discountPercent });
   } catch (e) {
     await client.query('rollback');
     res.status(500).json({ error: e.message });
@@ -562,12 +681,13 @@ app.post('/chiriperos/:id/membership-submit', async (req, res) => {
 app.get('/admin/memberships/pending', async (_req, res) => {
   try {
     const r = await db.query(`
-      select m.*, p.display_name, u.full_name, u.phone
-      from memberships m
-      join chiripero_profiles p on p.id = m.profile_id
+      select mp.*, p.display_name, u.full_name, u.phone,
+             mp.amount_final as amount_paid
+      from membership_payments mp
+      join chiripero_profiles p on p.id = mp.chiripero_profile_id
       join users u on u.id = p.user_id
-      where m.status = 'pending'
-      order by m.created_at desc
+      where mp.status = 'submitted'
+      order by mp.submitted_at desc
     `);
     res.json(r.rows);
   } catch (e) {
@@ -578,22 +698,31 @@ app.get('/admin/memberships/pending', async (_req, res) => {
 app.post('/admin/memberships/:id/decision', async (req, res) => {
   const client = await db.pool.connect();
   try {
-    const { decision } = req.body || {};
+    const { decision, note } = req.body || {};
     if (!['approved', 'rejected'].includes(decision)) return res.status(400).json({ error: 'invalid_decision' });
     await client.query('begin');
-    const membershipQ = await client.query(`select * from memberships where id=$1`, [req.params.id]);
-    if (!membershipQ.rowCount) {
+    const paymentQ = await client.query(`select * from membership_payments where id=$1`, [req.params.id]);
+    if (!paymentQ.rowCount) {
       await client.query('rollback');
       return res.status(404).json({ error: 'not_found' });
     }
-    const membership = membershipQ.rows[0];
-    await client.query(`update memberships set status=$1, reviewed_at=now() where id=$2`, [decision, req.params.id]);
+    const payment = paymentQ.rows[0];
+    await client.query(
+      `update membership_payments set status=$1, reviewed_note=$2, reviewed_by='admin', reviewed_at=now() where id=$3`,
+      [decision === 'approved' ? 'approved' : 'rejected', note || null, req.params.id]
+    );
     if (decision === 'approved') {
+      const durationDays = payment.plan_code === 'weekly' ? 7 : payment.plan_code === 'monthly' ? 30 : 90;
+      await client.query(
+        `insert into memberships (chiripero_profile_id, plan, amount, payment_provider, payment_status, starts_at, ends_at)
+         values ($1, $2, $3, 'manual', 'paid', now(), now() + ($4 || ' days')::interval)`,
+        [payment.chiripero_profile_id, payment.plan_code, payment.amount_final, String(durationDays)]
+      );
       await client.query(
         `update chiripero_profiles
-         set membership_status='active', membership_expires_at=now() + ($1 || ' days')::interval, updated_at=now()
-         where id=$2`,
-        [String(membership.duration_days || 30), membership.profile_id]
+         set membership_status='active', membership_plan=$1, membership_expires_at=now() + ($2 || ' days')::interval, updated_at=now()
+         where id=$3`,
+        [payment.plan_code, String(durationDays), payment.chiripero_profile_id]
       );
     }
     await client.query('commit');
@@ -776,6 +905,100 @@ app.delete('/admin/catalogo/zonas/:id', async (req, res) => {
     res.json({ ok: true });
   } catch (e) {
     if (e.code === '23503') return res.status(409).json({ error: 'zona_en_uso', message: 'Esta zona está asignada a uno o más chiriperos.' });
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get('/admin/promo-codes', async (_req, res) => {
+  try {
+    const r = await db.query(`
+      select id, code, discount_percent, active, expires_at, max_uses, times_used, created_at
+      from promo_codes
+      order by created_at desc
+    `);
+    res.json(r.rows);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/admin/promo-codes', async (req, res) => {
+  try {
+    const { code, discount_percent, expires_at, max_uses } = req.body || {};
+    if (!code) return res.status(400).json({ error: 'code_required' });
+    const percent = Number(discount_percent ?? 0);
+    if (Number.isNaN(percent) || percent < 0 || percent > 100) return res.status(400).json({ error: 'invalid_discount' });
+    const parsedMaxUses = max_uses === '' || max_uses === null || max_uses === undefined ? null : Number(max_uses);
+    if (parsedMaxUses !== null && (!Number.isInteger(parsedMaxUses) || parsedMaxUses < 1)) return res.status(400).json({ error: 'invalid_max_uses' });
+    const parsedExpiresAt = expires_at ? new Date(expires_at) : null;
+    if (expires_at && Number.isNaN(parsedExpiresAt.getTime())) return res.status(400).json({ error: 'invalid_expires_at' });
+    const normalized = String(code).trim().toUpperCase();
+    const r = await db.query(`
+      insert into promo_codes (code, discount_percent, discount_type, discount_value, active, expires_at, max_uses, times_used)
+      values ($1, $2, 'percent', $2, true, $3, $4, 0)
+      returning id, code, discount_percent, active, expires_at, max_uses, times_used, created_at
+    `, [normalized, percent, parsedExpiresAt ? parsedExpiresAt.toISOString() : null, parsedMaxUses]);
+    res.json(r.rows[0]);
+  } catch (e) {
+    if (e.code === '23505') return res.status(409).json({ error: 'code_taken', message: 'Ese código ya existe' });
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.patch('/admin/promo-codes/:id', async (req, res) => {
+  try {
+    const { code, discount_percent, active, expires_at, max_uses } = req.body || {};
+    const updates = [];
+    const vals = [];
+    if (code !== undefined) {
+      const normalized = String(code || '').trim().toUpperCase();
+      if (!normalized) return res.status(400).json({ error: 'code_required' });
+      vals.push(normalized);
+      updates.push(`code = $${vals.length}`);
+    }
+    if (discount_percent !== undefined) {
+      const percent = Number(discount_percent);
+      if (Number.isNaN(percent) || percent < 0 || percent > 100) return res.status(400).json({ error: 'invalid_discount' });
+      vals.push(percent);
+      updates.push(`discount_percent = $${vals.length}`);
+      vals.push('percent');
+      updates.push(`discount_type = $${vals.length}`);
+      vals.push(percent);
+      updates.push(`discount_value = $${vals.length}`);
+    }
+    if (active !== undefined) { vals.push(!!active); updates.push(`active = $${vals.length}`); }
+    if (expires_at !== undefined) {
+      if (expires_at) {
+        const parsed = new Date(expires_at);
+        if (Number.isNaN(parsed.getTime())) return res.status(400).json({ error: 'invalid_expires_at' });
+        vals.push(parsed.toISOString());
+      } else {
+        vals.push(null);
+      }
+      updates.push(`expires_at = $${vals.length}`);
+    }
+    if (max_uses !== undefined) {
+      if (max_uses === '' || max_uses === null) {
+        vals.push(null);
+      } else {
+        const parsedMaxUses = Number(max_uses);
+        if (!Number.isInteger(parsedMaxUses) || parsedMaxUses < 1) return res.status(400).json({ error: 'invalid_max_uses' });
+        vals.push(parsedMaxUses);
+      }
+      updates.push(`max_uses = $${vals.length}`);
+    }
+    if (!updates.length) return res.status(400).json({ error: 'nothing_to_update' });
+    vals.push(req.params.id);
+    const r = await db.query(`
+      update promo_codes
+      set ${updates.join(', ')}
+      where id = $${vals.length}
+      returning id, code, discount_percent, active, expires_at, max_uses, times_used, created_at
+    `, vals);
+    if (!r.rowCount) return res.status(404).json({ error: 'not_found' });
+    res.json(r.rows[0]);
+  } catch (e) {
+    if (e.code === '23505') return res.status(409).json({ error: 'code_taken', message: 'Ese código ya existe' });
     res.status(500).json({ error: e.message });
   }
 });

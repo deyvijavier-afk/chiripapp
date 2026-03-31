@@ -161,6 +161,17 @@ create table if not exists memberships (
   created_at timestamptz not null default now()
 );
 
+create table if not exists promo_codes (
+  id serial primary key,
+  code text unique not null,
+  discount_percent numeric(5,2) not null default 0,
+  active boolean not null default true,
+  expires_at timestamptz,
+  max_uses int,
+  times_used int not null default 0,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists chiripero_documents (
   id uuid primary key default gen_random_uuid(),
   chiripero_profile_id uuid not null references chiripero_profiles(id) on delete cascade,

@@ -3,16 +3,29 @@
 
 begin;
 
--- 1) verification_notes: text -> jsonb (safe cast)
-alter table chiripero_profiles
-  alter column verification_notes type jsonb
-  using (
-    case
-      when verification_notes is null or btrim(verification_notes) = '' then '{}'::jsonb
-      when left(btrim(verification_notes),1) in ('{','[') then verification_notes::jsonb
-      else jsonb_build_object('legacy_note', verification_notes)
-    end
-  );
+-- 1) verification_notes: text -> jsonb (safe cast, only when still text)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_name = 'chiripero_profiles'
+      AND column_name = 'verification_notes'
+      AND udt_name <> 'jsonb'
+  ) THEN
+    EXECUTE $mig$
+      alter table chiripero_profiles
+        alter column verification_notes type jsonb
+        using (
+          case
+            when verification_notes is null or btrim(verification_notes) = '' then '{}'::jsonb
+            when left(btrim(verification_notes),1) in ('{','[') then verification_notes::jsonb
+            else jsonb_build_object('legacy_note', verification_notes)
+          end
+        )
+    $mig$;
+  END IF;
+END $$;
 
 alter table chiripero_profiles
   alter column verification_notes set default '{}'::jsonb;
@@ -59,7 +72,23 @@ create table if not exists membership_payments (
 create index if not exists idx_membership_payments_profile_submitted
   on membership_payments(chiripero_profile_id, submitted_at desc);
 
--- 5) promo redemptions audit
+-- 5) promo codes catalog
+create table if not exists promo_codes (
+  id serial primary key,
+  code text unique not null,
+  discount_percent numeric(5,2) not null default 0,
+  active boolean not null default true,
+  expires_at timestamptz,
+  max_uses int,
+  times_used int not null default 0,
+  created_at timestamptz not null default now()
+);
+
+alter table promo_codes add column if not exists expires_at timestamptz;
+alter table promo_codes add column if not exists max_uses int;
+alter table promo_codes add column if not exists times_used int not null default 0;
+
+-- 6) promo redemptions audit
 create table if not exists promo_redemptions (
   id uuid primary key default gen_random_uuid(),
   code text not null references promo_codes(code),

@@ -8,518 +8,125 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --bg:#f4f9fd;--card:#ffffff;--text:#0f172a;--muted:#475569;
-      --brand:#1ea4de;--brand2:#177fbf;--line:#dbe8f2;
-      --ok:#16a34a;--warn:#b45309;--danger:#dc2626;
-      --blue-soft:#e0f2fe;--green-soft:#ecfdf5;--amber-soft:#fff7ed;--red-soft:#fef2f2;
-      --shadow:0 18px 40px rgba(15,23,42,.08);
-    }
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial;overflow-x:hidden}
-    .shell{display:grid;grid-template-columns:280px 1fr;min-height:100vh;transition:grid-template-columns .2s ease}
-    .shell.collapsed{grid-template-columns:0 1fr}
-    .sidebar{background:#ffffff;color:#0f172a;padding:22px 18px;position:sticky;top:0;height:100vh;overflow:auto;transition:transform .22s ease,opacity .22s ease;border-right:1px solid var(--line);box-shadow:0 10px 30px rgba(15,23,42,.05)}
-    .shell.collapsed .sidebar{transform:translateX(-100%);opacity:0;pointer-events:none}
-    .brand{display:flex;flex-direction:column;gap:10px;padding-bottom:18px;border-bottom:1px solid var(--line)}
-    .brand img{width:180px;max-width:100%;object-fit:contain}
-    .brand small{color:#64748b;line-height:1.45}
-    .nav-group{margin-top:20px}
-    .nav-title{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8;margin:0 0 10px 10px}
-    .nav-list{display:flex;flex-direction:column;gap:6px}
-    .nav-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:14px;color:#334155;text-decoration:none;font-size:14px;font-weight:600}
-    .nav-item:hover{background:#f1f5f9}
-    .nav-item.active{background:linear-gradient(135deg,#e0f2fe,#dbeafe);color:#075985;border:1px solid #bae6fd}
-    .nav-item.muted{opacity:.76}
-    .main{padding:22px;min-width:0}
-    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
-    .topbar-left{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-    .topbar-actions{display:flex;gap:10px;flex-wrap:wrap}
-    .btn{border:none;border-radius:14px;padding:11px 14px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;transition:opacity .15s}
-    .btn:hover{opacity:.88}
-    .btn:disabled{opacity:.5;cursor:not-allowed}
-    .icon-btn{width:46px;height:46px;padding:0;background:#fff;color:var(--text);border:1px solid var(--line);border-radius:14px;font-size:18px;font-weight:800;cursor:pointer}
-    .btn-primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;box-shadow:0 10px 24px rgba(23,127,191,.22)}
-    .btn-ghost{background:#fff;color:var(--text);border:1px solid var(--line)}
-    .btn-danger{background:#fee2e2;color:#b91c1c;border:1px solid #fecaca}
-    .btn-sm{padding:7px 11px;font-size:13px;border-radius:10px}
-    .btn-xs{padding:5px 9px;font-size:12px;border-radius:8px}
-    .hero{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-radius:24px;padding:24px;box-shadow:0 18px 40px rgba(23,127,191,.24);margin-bottom:20px}
-    .hero h1{margin:0 0 8px;font-size:28px;line-height:1.04}
-    .hero p{margin:0;opacity:.95;max-width:780px}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 2px 8px rgba(15,23,42,.05)}
-    .grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:0}
-    .section-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
-    .section-header h2{margin:0;font-size:17px;font-weight:800}
-    .section-header small{color:#64748b;font-size:13px}
-    .badge{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:4px 9px;font-size:11px;font-weight:700}
-    .badge.ok{background:#dcfce7;color:#166534}
-    .badge.off{background:#f1f5f9;color:#64748b}
-    .badge.info{background:#e0f2fe;color:#075985}
-    .item-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#fafcfe;margin-bottom:8px;transition:background .15s}
-    .item-row:hover{background:#f0f7fd}
-    .item-row:last-child{margin-bottom:0}
-    .item-name{font-weight:600;font-size:14px;flex:1;min-width:0}
-    .item-meta{font-size:12px;color:#64748b;margin-top:2px}
-    .item-actions{display:flex;gap:6px;flex-shrink:0}
-    .sub-list{margin:8px 0 4px 16px;display:flex;flex-direction:column;gap:6px}
-    .sub-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fbfe}
-    .sub-row:hover{background:#eef6fd}
-    .sub-name{font-size:13px;font-weight:600;flex:1}
-    .sub-actions{display:flex;gap:5px}
-    .add-sub-form{margin:8px 0 4px 16px;display:flex;gap:8px;align-items:center}
-    .add-sub-form input{flex:1;border:1px solid var(--line);border-radius:10px;padding:7px 11px;font-size:13px;font-family:inherit;outline:none}
-    .add-sub-form input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(30,164,222,.12)}
-    .empty{border:1px dashed #cbd5e1;border-radius:12px;padding:14px;text-align:center;color:#94a3b8;font-size:13px;background:#fff}
-    .form-row{display:flex;gap:8px;margin-bottom:14px}
-    .form-row input,.form-row select{flex:1;border:1px solid var(--line);border-radius:12px;padding:10px 13px;font-size:14px;font-family:inherit;outline:none;background:#fff}
-    .form-row input:focus,.form-row select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(30,164,222,.12)}
-    .toast{position:fixed;bottom:24px;right:24px;background:#0f172a;color:#fff;padding:13px 18px;border-radius:14px;font-size:14px;font-weight:600;z-index:999;opacity:0;transform:translateY(10px);transition:all .25s;pointer-events:none;max-width:320px}
-    .toast.show{opacity:1;transform:translateY(0)}
-    .toast.ok{background:#166534}
-    .toast.err{background:#b91c1c}
-    .spinner{display:inline-block;width:18px;height:18px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    .loading-overlay{display:flex;align-items:center;justify-content:center;padding:32px;color:#94a3b8;font-size:14px;gap:10px}
-    @media(max-width:900px){
-      .shell,.shell.collapsed{grid-template-columns:1fr}
-      .sidebar{position:fixed;left:0;width:280px;z-index:30}
-      .shell.collapsed .sidebar{transform:translateX(-100%)}
-      .main{padding:14px}
-      .grid-3{grid-template-columns:1fr}
-    }
-    @media(max-width:600px){
-      .main{padding:12px}
-      .hero{padding:18px;border-radius:18px}
-      .hero h1{font-size:22px}
-      .grid-3{grid-template-columns:1fr}
-    }
+    :root{--bg:#f4f9fd;--card:#fff;--text:#0f172a;--muted:#475569;--brand:#1ea4de;--brand2:#177fbf;--line:#dbe8f2;--ok:#16a34a;--warn:#b45309;--danger:#dc2626;--shadow:0 18px 40px rgba(15,23,42,.08)}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial;overflow-x:hidden}
+    .shell{display:grid;grid-template-columns:280px 1fr;min-height:100vh;transition:grid-template-columns .2s ease}.shell.collapsed{grid-template-columns:0 1fr}
+    .sidebar{background:#fff;color:#0f172a;padding:22px 18px;position:sticky;top:0;height:100vh;overflow:auto;transition:transform .22s ease,opacity .22s ease;border-right:1px solid var(--line);box-shadow:0 10px 30px rgba(15,23,42,.05)}.shell.collapsed .sidebar{transform:translateX(-100%);opacity:0;pointer-events:none}
+    .brand{display:flex;flex-direction:column;gap:10px;padding-bottom:18px;border-bottom:1px solid var(--line)} .brand img{width:180px;max-width:100%;object-fit:contain} .brand small{color:#64748b;line-height:1.45}
+    .nav-group{margin-top:20px}.nav-title{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8;margin:0 0 10px 10px}.nav-list{display:flex;flex-direction:column;gap:6px}.nav-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:14px;color:#334155;text-decoration:none;font-size:14px;font-weight:600}.nav-item:hover{background:#f1f5f9}.nav-item.active{background:linear-gradient(135deg,#e0f2fe,#dbeafe);color:#075985;border:1px solid #bae6fd}.nav-item.muted{opacity:.76}
+    .main{padding:22px;min-width:0}.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}.topbar-left{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.topbar-actions{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{border:none;border-radius:14px;padding:11px 14px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;transition:opacity .15s}.btn:hover{opacity:.88}.btn:disabled{opacity:.5;cursor:not-allowed}.icon-btn{width:46px;height:46px;padding:0;background:#fff;color:var(--text);border:1px solid var(--line);border-radius:14px;font-size:18px;font-weight:800;cursor:pointer}.btn-primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;box-shadow:0 10px 24px rgba(23,127,191,.22)}.btn-ghost{background:#fff;color:var(--text);border:1px solid var(--line)}
+    .hero{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-radius:22px;padding:14px 16px;box-shadow:0 18px 40px rgba(23,127,191,.24);margin-bottom:14px}.hero-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.hero-stat{background:linear-gradient(180deg,rgba(255,255,255,.20),rgba(255,255,255,.12));border:1px solid rgba(255,255,255,.20);border-radius:16px;padding:12px 14px;backdrop-filter:blur(10px);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 10px 24px rgba(5,55,96,.12)}.hero-stat-label{font-size:11px;color:rgba(255,255,255,.76);margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}.hero-stat-value{font-size:30px;font-weight:800;line-height:1;color:#fff}.hero-stat-sub{margin-top:6px;font-size:12px;color:rgba(255,255,255,.82);line-height:1.3}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 2px 8px rgba(15,23,42,.05);margin-top:12px}.section-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.section-header h2{margin:0;font-size:17px;font-weight:800}.section-header small{color:#64748b;font-size:13px}
+    .toolbar{display:grid;grid-template-columns:minmax(260px,1fr) auto;gap:10px;align-items:center;margin-bottom:12px}.toolbar input{width:100%;padding:12px;border:1px solid var(--line);border-radius:14px;background:#fff;font-size:14px}
+    .table-card{overflow:hidden;padding:0}.table-wrap{overflow-x:auto;overflow-y:visible;max-width:100%} table{width:100%;border-collapse:collapse;min-width:1100px;table-layout:fixed}
+    thead th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#64748b;background:#f8fbfe;padding:12px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:bottom;position:relative}
+    .th-controls{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}.th-btn{display:inline-flex;align-items:center;gap:6px;background:none;border:none;padding:0;font:inherit;color:inherit;font-weight:800;cursor:pointer;text-transform:inherit;letter-spacing:inherit;min-width:0;flex:1 1 auto}.th-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sort-indicator{font-size:11px;color:#94a3b8;flex:0 0 auto}
+    .th-filter-dropdown{position:relative;flex:0 0 auto}.th-filter-dropdown summary{list-style:none;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:10px;background:#fff;color:#475569;cursor:pointer;font-size:14px}.th-filter-dropdown summary::-webkit-details-marker{display:none}.th-filter-dropdown[open] summary{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}
+    .dd-list{position:absolute;top:calc(100% + 8px);right:0;min-width:220px;max-width:280px;max-height:260px;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px;box-shadow:var(--shadow);z-index:20}.dd-empty{font-size:12px;color:#64748b;padding:6px 4px}.dd-option{display:flex;align-items:flex-start;gap:8px;padding:6px 4px;font-size:12px;color:#334155;font-weight:600;text-transform:none;letter-spacing:normal}.dd-option input{margin-top:2px}
+    tbody td{padding:12px 10px;border-bottom:1px solid #edf2f7;vertical-align:middle} tbody tr:hover{background:#fbfdff}
+    .badge{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:800;white-space:nowrap}.badge.ok{background:#dcfce7;color:#166534}.badge.off{background:#f1f5f9;color:#64748b}.badge.warn{background:#fef3c7;color:#92400e}.badge.danger{background:#fee2e2;color:#b91c1c}.badge.info{background:#e0f2fe;color:#075985}
+    .name-strong{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px}.mini{font-size:12px;color:#64748b;line-height:1.4}.actions{display:flex;gap:8px;flex-wrap:wrap}.action-link{padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--text);text-decoration:none;font-size:12px;font-weight:700;cursor:pointer}
+    .toast{position:fixed;bottom:24px;right:24px;background:#0f172a;color:#fff;padding:13px 18px;border-radius:14px;font-size:14px;font-weight:600;z-index:999;opacity:0;transform:translateY(10px);transition:all .25s;pointer-events:none;max-width:320px}.toast.show{opacity:1;transform:translateY(0)}.toast.ok{background:#166534}.toast.err{background:#b91c1c}
+    .spinner{display:inline-block;width:18px;height:18px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.loading-overlay{display:flex;align-items:center;justify-content:center;padding:32px;color:#94a3b8;font-size:14px;gap:10px}.empty{padding:18px;text-align:center;color:#94a3b8}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:80}.modal-backdrop.show{display:flex}.modal-card{width:min(560px,100%);background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:20px}.modal-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}.modal-title{margin:0;font-size:20px;font-weight:800}.modal-subtitle{margin:4px 0 0;color:#64748b;font-size:13px}.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.modal-grid .full{grid-column:1/-1}.field label{display:block;font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}.field input,.field select{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 12px;font-size:14px;font-family:inherit;background:#fff}.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:16px;flex-wrap:wrap}
+    @media(max-width:1100px){.hero-summary{grid-template-columns:repeat(2,minmax(0,1fr))}} @media(max-width:900px){.shell,.shell.collapsed{grid-template-columns:1fr}.sidebar{position:fixed;left:0;width:280px;z-index:30}.shell.collapsed .sidebar{transform:translateX(-100%)}.main{padding:14px}} @media(max-width:700px){.main{padding:12px}.hero-summary,.toolbar,.modal-grid{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
 <div class="shell collapsed" id="appShell">
   <aside class="sidebar">
-    <div class="brand">
-      <img src="/demo/assets/logo_horizontal_trans.png" alt="CHIRIPAPP" />
-      <small>Backoffice operativo de marketplace + moderación + membresías.</small>
-    </div>
-    <div class="nav-group">
-      <p class="nav-title">Principal</p>
-      <div class="nav-list">
-        <a class="nav-item" href="/demo/admin-dashboard.html">📊 Dashboard</a>
-      </div>
-    </div>
-    <div class="nav-group">
-      <p class="nav-title">Operaciones</p>
-      <div class="nav-list">
-        <a class="nav-item" href="/demo/admin-chiriperos.html">👷 Chiriperos</a>
-        <a class="nav-item" href="/demo/admin-review.html">🛡️ Revisiones</a>
-        <a class="nav-item" href="/demo/admin-memberships.html">💳 Membresías</a>
-        <a class="nav-item muted" href="#">📣 Anuncios</a>
-      </div>
-    </div>
-    <div class="nav-group">
-      <p class="nav-title">Configuración</p>
-      <div class="nav-list">
-        <a class="nav-item active" href="/demo/admin-catalogo.html">⚙️ Catálogo</a>
-      </div>
-    </div>
+    <div class="brand"><img src="/demo/assets/logo_horizontal_trans.png" alt="CHIRIPAPP" /><small>Backoffice operativo de marketplace + moderación + membresías.</small></div>
+    <div class="nav-group"><p class="nav-title">Principal</p><div class="nav-list"><a class="nav-item" href="/demo/admin-dashboard.html">📊 Dashboard</a></div></div>
+    <div class="nav-group"><p class="nav-title">Operaciones</p><div class="nav-list"><a class="nav-item" href="/demo/admin-chiriperos.html">👷 Chiriperos</a><a class="nav-item" href="/demo/admin-review.html">🛡️ Revisiones</a><a class="nav-item" href="/demo/admin-memberships.html">💳 Membresías</a><a class="nav-item muted" href="#">📣 Anuncios</a></div></div>
+    <div class="nav-group"><p class="nav-title">Configuración</p><div class="nav-list"><a class="nav-item active" href="/demo/admin-catalogo.html">⚙️ Catálogo</a></div></div>
   </aside>
-
   <main class="main">
-    <div class="topbar">
-      <div class="topbar-left">
-        <button class="icon-btn" id="sidebarToggle" type="button" aria-label="Menú">☰</button>
-        <div>
-          <div style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b">CHIRIPAPP Admin</div>
-          <strong style="font-size:22px">⚙️ Catálogo</strong>
-        </div>
+    <div class="topbar"><div class="topbar-left"><button class="icon-btn" id="sidebarToggle" type="button" aria-label="Menú">☰</button><div><div style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b">CHIRIPAPP Admin</div><strong style="font-size:22px">⚙️ Catálogo</strong></div></div><div class="topbar-actions"><a class="btn btn-ghost" href="/demo/index.html" target="_blank">🌐 Ver sitio</a></div></div>
+
+    <section class="hero">
+      <div class="hero-summary">
+        <article class="hero-stat"><div class="hero-stat-label">Categorías activas</div><div class="hero-stat-value" id="kpiCategories">—</div><div class="hero-stat-sub">Categorías disponibles</div></article>
+        <article class="hero-stat"><div class="hero-stat-label">Servicios activos</div><div class="hero-stat-value" id="kpiServices">—</div><div class="hero-stat-sub">Servicios visibles</div></article>
+        <article class="hero-stat"><div class="hero-stat-label">Zonas activas</div><div class="hero-stat-value" id="kpiZones">—</div><div class="hero-stat-sub">Cobertura vigente</div></article>
+        <article class="hero-stat"><div class="hero-stat-label">Promo codes activos</div><div class="hero-stat-value" id="kpiPromos">—</div><div class="hero-stat-sub">Promos utilizables</div></article>
       </div>
-      <div class="topbar-actions">
-        <a class="btn btn-ghost" href="/demo/index.html" target="_blank">🌐 Ver sitio</a>
-      </div>
-    </div>
+    </section>
 
-    <div class="hero">
-      <h1>Gestión de Catálogo</h1>
-      <p>Administra las categorías, servicios y zonas disponibles en la plataforma. Los cambios aplican de inmediato para nuevos registros.</p>
-    </div>
+    <section class="card">
+      <div class="section-header"><div><h2>🗂️ Categorías + Servicios</h2><small id="catSubtitle">Cargando...</small></div><button class="btn btn-ghost" onclick="openCreateModal('catalog')">＋ Crear</button></div>
+      <div class="toolbar"><input id="catSearchInput" placeholder="Buscar en cualquier campo" /><div></div></div>
+      <section class="card table-card" style="margin-top:12px;padding-top:0"><div class="table-wrap"><table><thead><tr>
+        <th><div class="th-controls"><button class="th-btn" onclick="setCatalogSort('name_asc')"><span class="th-label">Nombre</span><span class="sort-indicator">↕</span></button></div></th>
+        <th><div class="th-controls"><button class="th-btn" onclick="setCatalogSort('type_asc')"><span class="th-label">Tipo</span><span class="sort-indicator">↕</span></button><details class="th-filter-dropdown"><summary>▾</summary><div class="dd-list" id="catalogTypeFilterList"></div></details></div></th>
+        <th><div class="th-controls"><button class="th-btn" onclick="setCatalogSort('relation_asc')"><span class="th-label">Relación</span><span class="sort-indicator">↕</span></button><details class="th-filter-dropdown"><summary>▾</summary><div class="dd-list" id="catalogRelationFilterList"></div></details></div></th>
+        <th><div class="th-controls"><button class="th-btn" onclick="setCatalogSort('status_asc')"><span class="th-label">Estado</span><span class="sort-indicator">↕</span></button><details class="th-filter-dropdown"><summary>▾</summary><div class="dd-list" id="catalogStatusFilterList"></div></details></div></th>
+        <th><div class="th-controls"><button class="th-btn" onclick="setCatalogSort('created_desc')"><span class="th-label">Creado</span><span class="sort-indicator">↕</span></button></div></th>
+        <th>Acciones</th></tr></thead><tbody id="catalogTableBody"><tr><td colspan="6"><div class="loading-overlay"><span class="spinner" style="border-top-color:var(--brand)"></span> Cargando catálogo...</div></td></tr></tbody></table></div></section>
+    </section>
 
-    <div class="grid-3" id="mainGrid">
-      <!-- Categorías & Servicios -->
-      <div class="card" style="grid-column: span 2">
-        <div class="section-header">
-          <div>
-            <h2>🗂️ Categorías y Servicios</h2>
-            <small id="catCount">Cargando...</small>
-          </div>
-          <button class="btn btn-primary btn-sm" id="btnAddCat">+ Nueva categoría</button>
-        </div>
+    <section class="card">
+      <div class="section-header"><div><h2>📍 Zonas</h2><small id="zoneSubtitle">Cargando...</small></div><button class="btn btn-ghost" onclick="openCreateModal('zone')">＋ Crear</button></div>
+      <div class="toolbar"><input id="zoneSearchInput" placeholder="Buscar en cualquier campo" /><div></div></div>
+      <section class="card table-card" style="margin-top:12px;padding-top:0"><div class="table-wrap"><table><thead><tr>
+        <th><div class="th-controls"><button class="th-btn" onclick="setZoneSort('name_asc')"><span class="th-label">Zona</span><span class="sort-indicator">↕</span></button></div></th>
+        <th><div class="th-controls"><button class="th-btn" onclick="setZoneSort('city_asc')"><span class="th-label">Ciudad</span><span class="sort-indicator">↕</span></button><details class="th-filter-dropdown"><summary>▾</summary><div class="dd-list" id="zoneCityFilterList"></div></details></div></th>
+        <th><div class="th-controls"><button class="th-btn" onclick="setZoneSort('status_asc')"><span class="th-label">Estado</span><span class="sort-indicator">↕</span></button><details class="th-filter-dropdown"><summary>▾</summary><div class="dd-list" id="zoneStatusFilterList"></div></details></div></th>
+        <th><div class="th-controls"><button class="th-btn" onclick="setZoneSort('created_desc')"><span class="th-label">Creada</span><span class="sort-indicator">↕</span></button></div></th>
+        <th>Acciones</th></tr></thead><tbody id="zoneTableBody"><tr><td colspan="5"><div class="loading-overlay"><span class="spinner" style="border-top-color:var(--brand)"></span> Cargando zonas...</div></td></tr></tbody></table></div></section>
+    </section>
 
-        <!-- Formulario nueva categoría (oculto por defecto) -->
-        <div id="formNewCat" style="display:none;margin-bottom:14px">
-          <div class="form-row">
-            <input type="text" id="inputNewCat" placeholder="Nombre de la categoría (ej: Electricidad)" maxlength="80" />
-            <button class="btn btn-primary btn-sm" id="btnSaveCat">Guardar</button>
-            <button class="btn btn-ghost btn-sm" id="btnCancelCat">Cancelar</button>
-          </div>
-        </div>
-
-        <div id="catList">
-          <div class="loading-overlay"><span class="spinner" style="border-top-color:var(--brand)"></span> Cargando categorías...</div>
-        </div>
-      </div>
-
-      <!-- Zonas -->
-      <div class="card">
-        <div class="section-header">
-          <div>
-            <h2>📍 Zonas</h2>
-            <small id="zonaCount">Cargando...</small>
-          </div>
-          <button class="btn btn-primary btn-sm" id="btnAddZona">+ Nueva zona</button>
-        </div>
-
-        <!-- Formulario nueva zona (oculto por defecto) -->
-        <div id="formNewZona" style="display:none;margin-bottom:14px">
-          <div class="form-row">
-            <input type="text" id="inputNewZona" placeholder="Nombre de la zona (ej: Gazcue)" maxlength="80" />
-          </div>
-          <div class="form-row">
-            <input type="text" id="inputNewZonaCity" placeholder="Ciudad" value="Santo Domingo" maxlength="80" />
-            <button class="btn btn-primary btn-sm" id="btnSaveZona">Guardar</button>
-            <button class="btn btn-ghost btn-sm" id="btnCancelZona">Cancelar</button>
-          </div>
-        </div>
-
-        <div id="zonaList">
-          <div class="loading-overlay"><span class="spinner" style="border-top-color:var(--brand)"></span> Cargando zonas...</div>
-        </div>
-      </div>
-    </div>
+    <section class="card">
+      <div class="section-header"><div><h2>🎟️ Promo codes</h2><small id="promoSubtitle">Cargando...</small></div><button class="btn btn-ghost" onclick="openCreateModal('promo')">＋ Crear</button></div>
+      <div class="toolbar"><input id="promoSearchInput" placeholder="Buscar en cualquier campo" /><div></div></div>
+      <section class="card table-card" style="margin-top:12px;padding-top:0"><div class="table-wrap"><table><thead><tr>
+        <th><div class="th-controls"><button class="th-btn" onclick="setPromoSort('code_asc')"><span class="th-label">Código</span><span class="sort-indicator">↕</span></button></div></th>
+        <th><div class="th-controls"><button class="th-btn" onclick="setPromoSort('discount_desc')"><span class="th-label">Descuento</span><span class="sort-indicator">↕</span></button></div></th>
+        <th><div class="th-controls"><button class="th-btn" onclick="setPromoSort('uses_desc')"><span class="th-label">Usos</span><span class="sort-indicator">↕</span></button></div></th>
+        <th><div class="th-controls"><button class="th-btn" onclick="setPromoSort('expires_asc')"><span class="th-label">Vigencia</span><span class="sort-indicator">↕</span></button><details class="th-filter-dropdown"><summary>▾</summary><div class="dd-list" id="promoValidityFilterList"></div></details></div></th>
+        <th><div class="th-controls"><button class="th-btn" onclick="setPromoSort('status_asc')"><span class="th-label">Estado</span><span class="sort-indicator">↕</span></button><details class="th-filter-dropdown"><summary>▾</summary><div class="dd-list" id="promoStatusFilterList"></div></details></div></th>
+        <th><div class="th-controls"><button class="th-btn" onclick="setPromoSort('created_desc')"><span class="th-label">Creado</span><span class="sort-indicator">↕</span></button></div></th>
+        <th>Acciones</th></tr></thead><tbody id="promoTableBody"><tr><td colspan="7"><div class="loading-overlay"><span class="spinner" style="border-top-color:var(--brand)"></span> Cargando promo codes...</div></td></tr></tbody></table></div></section>
+    </section>
   </main>
 </div>
 
-<!-- Toast de notificaciones -->
 <div class="toast" id="toast"></div>
+<div class="modal-backdrop" id="modal"><div class="modal-card"><div class="modal-header"><div><h3 class="modal-title" id="modalTitle">Editar</h3><p class="modal-subtitle" id="modalSubtitle">Actualiza los datos.</p></div><button class="icon-btn" type="button" onclick="closeModal()">✕</button></div><div class="modal-grid" id="modalBody"></div><div class="modal-actions"><button class="btn btn-ghost" type="button" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" type="button" id="modalSaveBtn">Guardar</button></div></div></div>
 
 <script>
-const API = '';
-
-// ─── Sidebar toggle ───────────────────────────────────────────────
-document.getElementById('sidebarToggle').addEventListener('click', () => {
-  document.getElementById('appShell').classList.toggle('collapsed');
-});
-
-// ─── Toast ────────────────────────────────────────────────────────
-function toast(msg, type = 'ok') {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = `toast show ${type}`;
-  clearTimeout(el._t);
-  el._t = setTimeout(() => el.classList.remove('show'), 3200);
-}
-
-// ─── Estado global ────────────────────────────────────────────────
-let categorias = [];
-let zonas = [];
-
-// ─── Render categorías ────────────────────────────────────────────
-function renderCats() {
-  const el = document.getElementById('catList');
-  document.getElementById('catCount').textContent =
-    `${categorias.length} categoría${categorias.length !== 1 ? 's' : ''} · ${categorias.reduce((a, c) => a + (c.subcategories?.length || 0), 0)} servicios`;
-
-  if (!categorias.length) {
-    el.innerHTML = '<div class="empty">No hay categorías. Agrega la primera.</div>';
-    return;
-  }
-
-  el.innerHTML = categorias.map(cat => `
-    <div class="item-row" id="cat-${cat.id}">
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-          <span class="item-name">${escHtml(cat.name)}</span>
-          <span class="badge ${cat.is_active ? 'ok' : 'off'}">${cat.is_active ? 'Activa' : 'Inactiva'}</span>
-          <span class="badge info">${cat.subcategories?.length || 0} servicios</span>
-        </div>
-
-        <!-- Servicios (subcategorías) -->
-        <div class="sub-list" id="subs-${cat.id}">
-          ${(cat.subcategories || []).map(s => `
-            <div class="sub-row" id="sub-${s.id}">
-              <span class="sub-name">${escHtml(s.name)}</span>
-              <div class="sub-actions">
-                <span class="badge ${s.is_active ? 'ok' : 'off'}" style="cursor:pointer" title="${s.is_active ? 'Desactivar' : 'Activar'}"
-                  onclick="toggleSub('${s.id}', ${s.is_active}, '${cat.id}')">${s.is_active ? '✓ Activo' : '✗ Inactivo'}</span>
-                <button class="btn btn-danger btn-xs" onclick="deleteSub('${s.id}', '${cat.id}')">🗑</button>
-              </div>
-            </div>
-          `).join('')}
-          ${cat.subcategories?.length === 0 ? '<div class="empty" style="padding:8px;font-size:12px">Sin servicios aún</div>' : ''}
-        </div>
-
-        <!-- Formulario agregar servicio -->
-        <div class="add-sub-form" id="addSubForm-${cat.id}" style="display:none">
-          <input type="text" id="inputSub-${cat.id}" placeholder="Nombre del servicio" maxlength="80" />
-          <button class="btn btn-primary btn-xs" onclick="saveSub('${cat.id}')">Agregar</button>
-          <button class="btn btn-ghost btn-xs" onclick="hideAddSubForm('${cat.id}')">✕</button>
-        </div>
-
-        <button class="btn btn-ghost btn-xs" style="margin-top:8px;margin-left:16px" onclick="showAddSubForm('${cat.id}')">+ Agregar servicio</button>
-      </div>
-
-      <div class="item-actions" style="flex-direction:column;gap:6px;align-items:flex-end">
-        <button class="btn btn-ghost btn-xs" onclick="toggleCat('${cat.id}', ${cat.is_active})"
-          title="${cat.is_active ? 'Desactivar' : 'Activar'}">${cat.is_active ? '⏸ Desactivar' : '▶ Activar'}</button>
-        <button class="btn btn-xs" onclick="renameCat('${cat.id}', '${escAttr(cat.name)}')"
-          style="background:#f0f7fd;color:#075985;border:1px solid #bae6fd">✏️ Renombrar</button>
-        <button class="btn btn-danger btn-xs" onclick="deleteCat('${cat.id}', '${escAttr(cat.name)}')">🗑 Borrar</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-// ─── Render zonas ─────────────────────────────────────────────────
-function renderZonas() {
-  const el = document.getElementById('zonaList');
-  const activas = zonas.filter(z => z.is_active).length;
-  document.getElementById('zonaCount').textContent =
-    `${zonas.length} zona${zonas.length !== 1 ? 's' : ''} · ${activas} activas`;
-
-  if (!zonas.length) {
-    el.innerHTML = '<div class="empty">No hay zonas. Agrega la primera.</div>';
-    return;
-  }
-
-  el.innerHTML = zonas.map(z => `
-    <div class="item-row" id="zona-${z.id}">
-      <div style="flex:1;min-width:0">
-        <div class="item-name">${escHtml(z.name)}</div>
-        <div class="item-meta">${escHtml(z.city)}</div>
-      </div>
-      <div class="item-actions">
-        <span class="badge ${z.is_active ? 'ok' : 'off'}" style="cursor:pointer" title="${z.is_active ? 'Desactivar' : 'Activar'}"
-          onclick="toggleZona('${z.id}', ${z.is_active})">${z.is_active ? '✓' : '✗'}</span>
-        <button class="btn btn-xs" onclick="renameZona('${z.id}', '${escAttr(z.name)}', '${escAttr(z.city)}')"
-          style="background:#f0f7fd;color:#075985;border:1px solid #bae6fd">✏️</button>
-        <button class="btn btn-danger btn-xs" onclick="deleteZona('${z.id}', '${escAttr(z.name)}')">🗑</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-// ─── Carga inicial ────────────────────────────────────────────────
-async function loadAll() {
-  try {
-    const [rCats, rZonas] = await Promise.all([
-      fetch(`${API}/admin/catalogo/categorias`).then(r => r.json()),
-      fetch(`${API}/admin/catalogo/zonas`).then(r => r.json()),
-    ]);
-    categorias = Array.isArray(rCats) ? rCats : [];
-    zonas = Array.isArray(rZonas) ? rZonas : [];
-    renderCats();
-    renderZonas();
-  } catch (e) {
-    toast('Error cargando datos: ' + e.message, 'err');
-  }
-}
-
-// ─── Categorías: CRUD ─────────────────────────────────────────────
-document.getElementById('btnAddCat').addEventListener('click', () => {
-  document.getElementById('formNewCat').style.display = '';
-  document.getElementById('inputNewCat').focus();
-});
-document.getElementById('btnCancelCat').addEventListener('click', () => {
-  document.getElementById('formNewCat').style.display = 'none';
-  document.getElementById('inputNewCat').value = '';
-});
-document.getElementById('btnSaveCat').addEventListener('click', async () => {
-  const name = document.getElementById('inputNewCat').value.trim();
-  if (!name) return toast('Escribe el nombre de la categoría', 'err');
-  try {
-    const r = await fetch(`${API}/admin/catalogo/categorias`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ name })
-    });
-    const d = await r.json();
-    if (!r.ok) return toast(d.error === 'categoria_ya_existe' ? 'Esa categoría ya existe' : d.error, 'err');
-    toast(`✅ Categoría "${name}" creada`);
-    document.getElementById('formNewCat').style.display = 'none';
-    document.getElementById('inputNewCat').value = '';
-    await loadAll();
-  } catch(e) { toast('Error: ' + e.message, 'err'); }
-});
-document.getElementById('inputNewCat').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('btnSaveCat').click();
-});
-
-async function toggleCat(id, currentActive) {
-  try {
-    const r = await fetch(`${API}/admin/catalogo/categorias/${id}`, {
-      method: 'PATCH', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ is_active: !currentActive })
-    });
-    if (!r.ok) { const d = await r.json(); return toast(d.error, 'err'); }
-    toast(currentActive ? '⏸ Categoría desactivada' : '▶ Categoría activada');
-    await loadAll();
-  } catch(e) { toast('Error: ' + e.message, 'err'); }
-}
-
-async function renameCat(id, currentName) {
-  const name = prompt('Nuevo nombre para la categoría:', currentName);
-  if (!name || name.trim() === currentName) return;
-  try {
-    const r = await fetch(`${API}/admin/catalogo/categorias/${id}`, {
-      method: 'PATCH', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ name: name.trim() })
-    });
-    const d = await r.json();
-    if (!r.ok) return toast(d.error === 'nombre_duplicado' ? 'Ese nombre ya existe' : d.error, 'err');
-    toast(`✅ Categoría renombrada a "${name.trim()}"`);
-    await loadAll();
-  } catch(e) { toast('Error: ' + e.message, 'err'); }
-}
-
-async function deleteCat(id, name) {
-  if (!confirm(`¿Seguro que quieres borrar la categoría "${name}"?\nSe borrarán también todos sus servicios.`)) return;
-  try {
-    const r = await fetch(`${API}/admin/catalogo/categorias/${id}`, { method: 'DELETE' });
-    const d = await r.json();
-    if (!r.ok) return toast(d.message || d.error, 'err');
-    toast(`🗑 Categoría "${name}" eliminada`);
-    await loadAll();
-  } catch(e) { toast('Error: ' + e.message, 'err'); }
-}
-
-// ─── Subcategorías (servicios): CRUD ─────────────────────────────
-function showAddSubForm(catId) {
-  document.getElementById(`addSubForm-${catId}`).style.display = 'flex';
-  document.getElementById(`inputSub-${catId}`).focus();
-}
-function hideAddSubForm(catId) {
-  document.getElementById(`addSubForm-${catId}`).style.display = 'none';
-  document.getElementById(`inputSub-${catId}`).value = '';
-}
-
-async function saveSub(catId) {
-  const input = document.getElementById(`inputSub-${catId}`);
-  const name = input.value.trim();
-  if (!name) return toast('Escribe el nombre del servicio', 'err');
-  try {
-    const r = await fetch(`${API}/admin/catalogo/subcategorias`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ category_id: catId, name })
-    });
-    const d = await r.json();
-    if (!r.ok) return toast(d.error === 'servicio_ya_existe' ? 'Ese servicio ya existe en esta categoría' : d.error, 'err');
-    toast(`✅ Servicio "${name}" agregado`);
-    input.value = '';
-    await loadAll();
-  } catch(e) { toast('Error: ' + e.message, 'err'); }
-}
-
-async function toggleSub(id, currentActive, catId) {
-  try {
-    const r = await fetch(`${API}/admin/catalogo/subcategorias/${id}`, {
-      method: 'PATCH', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ is_active: !currentActive })
-    });
-    if (!r.ok) { const d = await r.json(); return toast(d.error, 'err'); }
-    toast(currentActive ? '⏸ Servicio desactivado' : '▶ Servicio activado');
-    await loadAll();
-  } catch(e) { toast('Error: ' + e.message, 'err'); }
-}
-
-async function deleteSub(id, catId) {
-  if (!confirm('¿Seguro que quieres borrar este servicio?')) return;
-  try {
-    const r = await fetch(`${API}/admin/catalogo/subcategorias/${id}`, { method: 'DELETE' });
-    const d = await r.json();
-    if (!r.ok) return toast(d.message || d.error, 'err');
-    toast('🗑 Servicio eliminado');
-    await loadAll();
-  } catch(e) { toast('Error: ' + e.message, 'err'); }
-}
-
-// ─── Zonas: CRUD ──────────────────────────────────────────────────
-document.getElementById('btnAddZona').addEventListener('click', () => {
-  document.getElementById('formNewZona').style.display = '';
-  document.getElementById('inputNewZona').focus();
-});
-document.getElementById('btnCancelZona').addEventListener('click', () => {
-  document.getElementById('formNewZona').style.display = 'none';
-  document.getElementById('inputNewZona').value = '';
-});
-document.getElementById('btnSaveZona').addEventListener('click', async () => {
-  const name = document.getElementById('inputNewZona').value.trim();
-  const city = document.getElementById('inputNewZonaCity').value.trim() || 'Santo Domingo';
-  if (!name) return toast('Escribe el nombre de la zona', 'err');
-  try {
-    const r = await fetch(`${API}/admin/catalogo/zonas`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ name, city })
-    });
-    const d = await r.json();
-    if (!r.ok) return toast(d.error === 'zona_ya_existe' ? 'Esa zona ya existe' : d.error, 'err');
-    toast(`✅ Zona "${name}" creada`);
-    document.getElementById('formNewZona').style.display = 'none';
-    document.getElementById('inputNewZona').value = '';
-    await loadAll();
-  } catch(e) { toast('Error: ' + e.message, 'err'); }
-});
-document.getElementById('inputNewZona').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('btnSaveZona').click();
-});
-
-async function toggleZona(id, currentActive) {
-  try {
-    const r = await fetch(`${API}/admin/catalogo/zonas/${id}`, {
-      method: 'PATCH', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ is_active: !currentActive })
-    });
-    if (!r.ok) { const d = await r.json(); return toast(d.error, 'err'); }
-    toast(currentActive ? '⏸ Zona desactivada' : '▶ Zona activada');
-    await loadAll();
-  } catch(e) { toast('Error: ' + e.message, 'err'); }
-}
-
-async function renameZona(id, currentName, currentCity) {
-  const name = prompt('Nuevo nombre para la zona:', currentName);
-  if (!name || name.trim() === currentName) return;
-  try {
-    const r = await fetch(`${API}/admin/catalogo/zonas/${id}`, {
-      method: 'PATCH', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ name: name.trim() })
-    });
-    const d = await r.json();
-    if (!r.ok) return toast(d.error === 'nombre_duplicado' ? 'Ese nombre ya existe' : d.error, 'err');
-    toast(`✅ Zona renombrada a "${name.trim()}"`);
-    await loadAll();
-  } catch(e) { toast('Error: ' + e.message, 'err'); }
-}
-
-async function deleteZona(id, name) {
-  if (!confirm(`¿Seguro que quieres borrar la zona "${name}"?`)) return;
-  try {
-    const r = await fetch(`${API}/admin/catalogo/zonas/${id}`, { method: 'DELETE' });
-    const d = await r.json();
-    if (!r.ok) return toast(d.message || d.error, 'err');
-    toast(`🗑 Zona "${name}" eliminada`);
-    await loadAll();
-  } catch(e) { toast('Error: ' + e.message, 'err'); }
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────
-function escHtml(s) {
-  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function escAttr(s) {
-  return String(s || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-}
-
-// ─── Init ─────────────────────────────────────────────────────────
-loadAll();
+const API='';
+document.getElementById('sidebarToggle').addEventListener('click',()=>document.getElementById('appShell').classList.toggle('collapsed'));
+function toast(msg,type='ok'){const el=document.getElementById('toast');el.textContent=msg;el.className=`toast show ${type}`;clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),3200)}
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function formatDate(value){try{if(!value)return '—';return new Date(value).toLocaleString('es-DO',{dateStyle:'short',timeStyle:'short'})}catch{return '—'}}
+function toDateTimeLocal(value){if(!value)return '';const d=new Date(value);if(Number.isNaN(d.getTime()))return '';const pad=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`}
+const state={categories:[],catalogRows:[],zones:[],promoCodes:[],catalogSearch:'',zoneSearch:'',promoSearch:'',catalogSort:'name_asc',zoneSort:'name_asc',promoSort:'created_desc',catalogFilters:{type:new Set(),relation:new Set(),status:new Set()},zoneFilters:{city:new Set(),status:new Set()},promoFilters:{validity:new Set(),status:new Set()},modal:null};
+function flattenCatalog(categories){const rows=[];categories.forEach(cat=>{rows.push({kind:'category',id:cat.id,name:cat.name,status:!!cat.is_active,relation:'—',created_at:cat.created_at||null});(cat.subcategories||[]).forEach(sub=>rows.push({kind:'service',id:sub.id,name:sub.name,status:!!sub.is_active,relation:cat.name,category_id:cat.id,created_at:sub.created_at||null}))});return rows}
+function getPromoFlags(code){const now=Date.now();const expired=code.expires_at?new Date(code.expires_at).getTime()<now:false;const hasLimit=code.max_uses!==null&&code.max_uses!==undefined;const maxUses=hasLimit?Number(code.max_uses):null;const timesUsed=Number(code.times_used||0);const exhausted=hasLimit&&timesUsed>=maxUses;return{expired,hasLimit,maxUses,timesUsed,exhausted}}
+function updateKpis(){document.getElementById('kpiCategories').textContent=state.catalogRows.filter(r=>r.kind==='category'&&r.status).length;document.getElementById('kpiServices').textContent=state.catalogRows.filter(r=>r.kind==='service'&&r.status).length;document.getElementById('kpiZones').textContent=state.zones.filter(z=>z.is_active).length;document.getElementById('kpiPromos').textContent=state.promoCodes.filter(p=>p.active).length}
+async function loadAll(){try{const [cats,zones,promos]=await Promise.all([fetch(`${API}/admin/catalogo/categorias`).then(r=>r.json()),fetch(`${API}/admin/catalogo/zonas`).then(r=>r.json()),fetch(`${API}/admin/promo-codes`).then(r=>r.json())]);state.categories=Array.isArray(cats)?cats:[];state.catalogRows=flattenCatalog(state.categories);state.zones=Array.isArray(zones)?zones:[];state.promoCodes=Array.isArray(promos)?promos:[];updateKpis();renderCatalogFilterDropdowns();renderZoneFilterDropdowns();renderPromoFilterDropdowns();renderCatalogTable();renderZoneTable();renderPromoTable()}catch(e){toast('Error cargando datos: '+e.message,'err')}}
+function sortByText(a,b,key,dir='asc'){return dir==='asc'?String(a[key]||'').localeCompare(String(b[key]||'')):String(b[key]||'').localeCompare(String(a[key]||''))}function sortByDate(a,b,key,dir='desc'){return dir==='asc'?new Date(a[key]||0)-new Date(b[key]||0):new Date(b[key]||0)-new Date(a[key]||0)}
+function renderCheckboxList(containerId, values, selectedSet, onChange){const el=document.getElementById(containerId);if(!el)return;const arr=[...new Set(values.filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b)));if(!arr.length){el.innerHTML='<div class="dd-empty">Sin valores</div>';return}el.innerHTML=arr.map(v=>`<label class="dd-option"><input type="checkbox" value="${escHtml(v)}" ${selectedSet.has(v)?'checked':''} /> <span>${escHtml(v)}</span></label>`).join('');el.querySelectorAll('input').forEach(input=>input.addEventListener('change',()=>{const value=input.value;if(input.checked)selectedSet.add(value);else selectedSet.delete(value);onChange()}))}
+function renderCatalogFilterDropdowns(){renderCheckboxList('catalogTypeFilterList',state.catalogRows.map(r=>r.kind==='category'?'Categoría':'Servicio'),state.catalogFilters.type,renderCatalogTable);renderCheckboxList('catalogRelationFilterList',state.catalogRows.map(r=>r.relation).filter(v=>v&&v!=='—'),state.catalogFilters.relation,renderCatalogTable);renderCheckboxList('catalogStatusFilterList',['Activo','Inactivo'],state.catalogFilters.status,renderCatalogTable)}
+function renderZoneFilterDropdowns(){renderCheckboxList('zoneCityFilterList',state.zones.map(z=>z.city),state.zoneFilters.city,renderZoneTable);renderCheckboxList('zoneStatusFilterList',['Activa','Inactiva'],state.zoneFilters.status,renderZoneTable)}
+function renderPromoFilterDropdowns(){renderCheckboxList('promoValidityFilterList',['Vigente','Expirado','Agotado'],state.promoFilters.validity,renderPromoTable);renderCheckboxList('promoStatusFilterList',['Activo','Inactivo'],state.promoFilters.status,renderPromoTable)}
+function renderCatalogTable(){const body=document.getElementById('catalogTableBody');let rows=[...state.catalogRows].filter(r=>{const text=`${r.name} ${r.relation||''} ${r.kind}`.toLowerCase();const searchOk=!state.catalogSearch||text.includes(state.catalogSearch);const typeLabel=r.kind==='category'?'Categoría':'Servicio';const statusLabel=r.status?'Activo':'Inactivo';const typeOk=!state.catalogFilters.type.size||state.catalogFilters.type.has(typeLabel);const relationOk=!state.catalogFilters.relation.size||(r.relation&&state.catalogFilters.relation.has(r.relation));const statusOk=!state.catalogFilters.status.size||state.catalogFilters.status.has(statusLabel);return searchOk&&typeOk&&relationOk&&statusOk});if(state.catalogSort==='name_asc')rows.sort((a,b)=>sortByText(a,b,'name','asc'));else if(state.catalogSort==='type_asc')rows.sort((a,b)=>sortByText(a,b,'kind','asc'));else if(state.catalogSort==='relation_asc')rows.sort((a,b)=>sortByText(a,b,'relation','asc'));else if(state.catalogSort==='status_asc')rows.sort((a,b)=>sortByText({x:a.status?'Activo':'Inactivo'},{x:b.status?'Activo':'Inactivo'},'x','asc'));else if(state.catalogSort==='created_desc')rows.sort((a,b)=>sortByDate(a,b,'created_at','desc'));document.getElementById('catSubtitle').textContent=`${rows.length} registro(s)`;if(!rows.length){body.innerHTML='<tr><td colspan="6"><div class="empty">No hay registros para esos filtros.</div></td></tr>';return}body.innerHTML=rows.map(r=>`<tr><td><div class="name-strong">${escHtml(r.name)}</div></td><td><span class="badge info">${r.kind==='category'?'Categoría':'Servicio'}</span></td><td>${escHtml(r.relation||'—')}</td><td><span class="badge ${r.status?'ok':'off'}">${r.status?'Activo':'Inactivo'}</span></td><td>${formatDate(r.created_at)}</td><td><div class="actions"><button class="action-link" onclick="toggleCatalogRow('${r.kind}','${r.id}',${r.status})">${r.status?'Desactivar':'Activar'}</button><button class="action-link" onclick="openEditModal('${r.kind}','${r.id}')">Editar</button>${r.kind==='category'?`<button class='action-link' onclick="deleteCategory('${r.id}','${escHtml(r.name)}')">Borrar</button>`:`<button class='action-link' onclick="deleteService('${r.id}')">Borrar</button>`}</div></td></tr>`).join('')}
+function renderZoneTable(){const body=document.getElementById('zoneTableBody');let rows=[...state.zones].filter(z=>{const text=`${z.name||''} ${z.city||''}`.toLowerCase();const searchOk=!state.zoneSearch||text.includes(state.zoneSearch);const statusLabel=z.is_active?'Activa':'Inactiva';const cityOk=!state.zoneFilters.city.size||state.zoneFilters.city.has(z.city);const statusOk=!state.zoneFilters.status.size||state.zoneFilters.status.has(statusLabel);return searchOk&&cityOk&&statusOk});if(state.zoneSort==='name_asc')rows.sort((a,b)=>sortByText(a,b,'name','asc'));else if(state.zoneSort==='city_asc')rows.sort((a,b)=>sortByText(a,b,'city','asc'));else if(state.zoneSort==='status_asc')rows.sort((a,b)=>sortByText({x:a.is_active?'Activa':'Inactiva'},{x:b.is_active?'Activa':'Inactiva'},'x','asc'));else if(state.zoneSort==='created_desc')rows.sort((a,b)=>sortByDate(a,b,'created_at','desc'));document.getElementById('zoneSubtitle').textContent=`${rows.length} zona(s)`;if(!rows.length){body.innerHTML='<tr><td colspan="5"><div class="empty">No hay zonas para esos filtros.</div></td></tr>';return}body.innerHTML=rows.map(z=>`<tr><td><div class="name-strong">${escHtml(z.name)}</div></td><td>${escHtml(z.city||'—')}</td><td><span class="badge ${z.is_active?'ok':'off'}">${z.is_active?'Activa':'Inactiva'}</span></td><td>${formatDate(z.created_at)}</td><td><div class="actions"><button class="action-link" onclick="toggleZone('${z.id}',${z.is_active})">${z.is_active?'Desactivar':'Activar'}</button><button class="action-link" onclick="openEditModal('zone','${z.id}')">Editar</button><button class="action-link" onclick="deleteZone('${z.id}','${escHtml(z.name)}')">Borrar</button></div></td></tr>`).join('')}
+function renderPromoTable(){const body=document.getElementById('promoTableBody');let rows=[...state.promoCodes].filter(p=>{const flags=getPromoFlags(p);const validity=flags.exhausted?'Agotado':(flags.expired?'Expirado':'Vigente');const statusLabel=p.active?'Activo':'Inactivo';const text=`${p.code||''} ${statusLabel} ${validity}`.toLowerCase();const searchOk=!state.promoSearch||text.includes(state.promoSearch);const validityOk=!state.promoFilters.validity.size||state.promoFilters.validity.has(validity);const statusOk=!state.promoFilters.status.size||state.promoFilters.status.has(statusLabel);return searchOk&&validityOk&&statusOk});if(state.promoSort==='code_asc')rows.sort((a,b)=>sortByText(a,b,'code','asc'));else if(state.promoSort==='discount_desc')rows.sort((a,b)=>Number(b.discount_percent||0)-Number(a.discount_percent||0));else if(state.promoSort==='uses_desc')rows.sort((a,b)=>Number(b.times_used||0)-Number(a.times_used||0));else if(state.promoSort==='expires_asc')rows.sort((a,b)=>sortByDate(a,b,'expires_at','asc'));else if(state.promoSort==='status_asc')rows.sort((a,b)=>sortByText({x:a.active?'Activo':'Inactivo'},{x:b.active?'Activo':'Inactivo'},'x','asc'));else if(state.promoSort==='created_desc')rows.sort((a,b)=>sortByDate(a,b,'created_at','desc'));document.getElementById('promoSubtitle').textContent=`${rows.length} promo code(s)`;if(!rows.length){body.innerHTML='<tr><td colspan="7"><div class="empty">No hay promo codes para esos filtros.</div></td></tr>';return}body.innerHTML=rows.map(p=>{const f=getPromoFlags(p);const badges=[`<span class="badge ${p.active?'ok':'off'}">${p.active?'Activo':'Inactivo'}</span>`];if(f.expired)badges.push('<span class="badge danger">Expirado</span>');if(f.exhausted)badges.push('<span class="badge warn">Agotado</span>');return `<tr><td><div class="name-strong">${escHtml(p.code)}</div></td><td><strong>${Number(p.discount_percent||0).toFixed(2)}%</strong></td><td><strong>${f.timesUsed}</strong><div class="mini">${f.hasLimit?`Límite ${f.maxUses}`:'Ilimitado'}</div></td><td>${formatDate(p.expires_at)}</td><td><div class="actions">${badges.join(' ')}</div></td><td>${formatDate(p.created_at)}</td><td><div class="actions"><button class="action-link" onclick="togglePromoCode('${p.id}',${p.active})">${p.active?'Desactivar':'Activar'}</button><button class="action-link" onclick="openEditModal('promo','${p.id}')">Editar</button></div></td></tr>`}).join('')}
+function setCatalogSort(v){state.catalogSort=v;renderCatalogTable()} function setZoneSort(v){state.zoneSort=v;renderZoneTable()} function setPromoSort(v){state.promoSort=v;renderPromoTable()}
+async function toggleCatalogRow(kind,id,current){const route=kind==='category'?'categorias':'subcategorias';try{const r=await fetch(`${API}/admin/catalogo/${route}/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({is_active:!current})});const d=await r.json();if(!r.ok)throw new Error(d.error||'No se pudo actualizar');toast(`✅ ${kind==='category'?'Categoría':'Servicio'} ${!current?'activado':'desactivado'}`);await loadAll()}catch(e){toast('Error: '+e.message,'err')}}
+async function toggleZone(id,current){try{const r=await fetch(`${API}/admin/catalogo/zonas/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({is_active:!current})});const d=await r.json();if(!r.ok)throw new Error(d.error||'No se pudo actualizar');toast(`✅ Zona ${!current?'activada':'desactivada'}`);await loadAll()}catch(e){toast('Error: '+e.message,'err')}}
+async function togglePromoCode(id,current){try{const r=await fetch(`${API}/admin/promo-codes/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({active:!current})});const d=await r.json();if(!r.ok)throw new Error(d.error||'No se pudo actualizar');toast(`✅ Código ${d.code} ${d.active?'activado':'desactivado'}`);await loadAll()}catch(e){toast('Error: '+e.message,'err')}}
+async function deleteCategory(id,name){if(!confirm(`¿Seguro que quieres borrar la categoría ${name}?`))return;try{const r=await fetch(`${API}/admin/catalogo/categorias/${id}`,{method:'DELETE'});const d=await r.json();if(!r.ok)throw new Error(d.message||d.error||'No se pudo borrar');toast('🗑 Categoría eliminada');await loadAll()}catch(e){toast('Error: '+e.message,'err')}}
+async function deleteService(id){if(!confirm('¿Seguro que quieres borrar este servicio?'))return;try{const r=await fetch(`${API}/admin/catalogo/subcategorias/${id}`,{method:'DELETE'});const d=await r.json();if(!r.ok)throw new Error(d.message||d.error||'No se pudo borrar');toast('🗑 Servicio eliminado');await loadAll()}catch(e){toast('Error: '+e.message,'err')}}
+async function deleteZone(id,name){if(!confirm(`¿Seguro que quieres borrar la zona ${name}?`))return;try{const r=await fetch(`${API}/admin/catalogo/zonas/${id}`,{method:'DELETE'});const d=await r.json();if(!r.ok)throw new Error(d.message||d.error||'No se pudo borrar');toast('🗑 Zona eliminada');await loadAll()}catch(e){toast('Error: '+e.message,'err')}}
+function closeModal(){document.getElementById('modal').classList.remove('show');state.modal=null}
+function openCreateModal(kind){state.modal={mode:'create',kind};const body=document.getElementById('modalBody');document.getElementById('modalTitle').textContent='Crear';document.getElementById('modalSubtitle').textContent='Agrega un nuevo registro';if(kind==='catalog'){body.innerHTML=`<div class="field full"><label>Tipo</label><select id="createCatalogKind"><option value="category">Categoría</option><option value="service">Servicio</option></select></div><div class="field full"><label>Nombre</label><input id="createCatalogName" /></div><div class="field full"><label>Categoría madre (si es servicio)</label><select id="createCatalogParent"><option value="">Selecciona una categoría</option>${state.categories.map(c=>`<option value="${c.id}">${escHtml(c.name)}</option>`).join('')}</select></div>`}else if(kind==='zone'){body.innerHTML=`<div class="field full"><label>Zona</label><input id="createZoneName" /></div><div class="field full"><label>Ciudad</label><input id="createZoneCity" value="Santo Domingo" /></div>`}else{body.innerHTML=`<div class="field full"><label>Código</label><input id="createPromoCode" /></div><div class="field"><label>Descuento (%)</label><input type="number" id="createPromoDiscount" min="0" max="100" step="0.5" /></div><div class="field"><label>Caduca en</label><input type="datetime-local" id="createPromoExpires" /></div><div class="field full"><label>Límite de usos</label><input type="number" id="createPromoMaxUses" min="1" step="1" /></div>`}document.getElementById('modal').classList.add('show')}
+function openEditModal(kind,id){state.modal={mode:'edit',kind,id};const body=document.getElementById('modalBody');document.getElementById('modalTitle').textContent='Editar';document.getElementById('modalSubtitle').textContent='Actualiza los datos';if(kind==='promo'){const p=state.promoCodes.find(x=>String(x.id)===String(id));body.innerHTML=`<div class="field full"><label>Código</label><input id="editPromoCode" value="${escHtml(p.code)}" /></div><div class="field"><label>Descuento (%)</label><input type="number" id="editPromoDiscount" min="0" max="100" step="0.5" value="${Number(p.discount_percent||0)}" /></div><div class="field"><label>Estado</label><select id="editPromoStatus"><option value="true" ${p.active?'selected':''}>Activo</option><option value="false" ${!p.active?'selected':''}>Inactivo</option></select></div><div class="field"><label>Caduca en</label><input type="datetime-local" id="editPromoExpires" value="${toDateTimeLocal(p.expires_at)}" /></div><div class="field"><label>Límite de usos</label><input type="number" id="editPromoMaxUses" min="1" step="1" value="${p.max_uses??''}" /></div>`}else if(kind==='zone'){const z=state.zones.find(x=>String(x.id)===String(id));body.innerHTML=`<div class="field full"><label>Zona</label><input id="editZoneName" value="${escHtml(z.name)}" /></div><div class="field full"><label>Ciudad</label><input id="editZoneCity" value="${escHtml(z.city||'')}" /></div><div class="field"><label>Estado</label><select id="editZoneStatus"><option value="true" ${z.is_active?'selected':''}>Activa</option><option value="false" ${!z.is_active?'selected':''}>Inactiva</option></select></div>`}else{const r=state.catalogRows.find(x=>String(x.id)===String(id)&&x.kind===kind);body.innerHTML=`<div class="field full"><label>Nombre</label><input id="editCatalogName" value="${escHtml(r.name)}" /></div><div class="field"><label>Estado</label><select id="editCatalogStatus"><option value="true" ${r.status?'selected':''}>Activo</option><option value="false" ${!r.status?'selected':''}>Inactivo</option></select></div>`}document.getElementById('modal').classList.add('show')}
+async function saveModal(){if(!state.modal)return;try{if(state.modal.mode==='create'){if(state.modal.kind==='catalog'){const kind=document.getElementById('createCatalogKind').value;const name=document.getElementById('createCatalogName').value.trim();const parent=document.getElementById('createCatalogParent').value;if(!name)throw new Error('Nombre requerido');if(kind==='category'){const r=await fetch(`${API}/admin/catalogo/categorias`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})});const d=await r.json();if(!r.ok)throw new Error(d.error||'No se pudo crear categoría')}else{if(!parent)throw new Error('Selecciona categoría madre');const r=await fetch(`${API}/admin/catalogo/subcategorias`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({category_id:parent,name})});const d=await r.json();if(!r.ok)throw new Error(d.error||'No se pudo crear servicio')}}else if(state.modal.kind==='zone'){const name=document.getElementById('createZoneName').value.trim();const city=document.getElementById('createZoneCity').value.trim()||'Santo Domingo';if(!name)throw new Error('Nombre requerido');const r=await fetch(`${API}/admin/catalogo/zonas`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,city})});const d=await r.json();if(!r.ok)throw new Error(d.error||'No se pudo crear zona')}else{const code=document.getElementById('createPromoCode').value.trim();const discount_percent=Number(document.getElementById('createPromoDiscount').value||0);const expires_at=document.getElementById('createPromoExpires').value||null;const max_uses=document.getElementById('createPromoMaxUses').value||null;if(!code)throw new Error('Código requerido');const r=await fetch(`${API}/admin/promo-codes`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,discount_percent,expires_at,max_uses})});const d=await r.json();if(!r.ok)throw new Error(d.error||'No se pudo crear promo code')}}else{const {kind,id}=state.modal;if(kind==='promo'){const payload={code:document.getElementById('editPromoCode').value.trim(),discount_percent:Number(document.getElementById('editPromoDiscount').value||0),active:document.getElementById('editPromoStatus').value==='true',expires_at:document.getElementById('editPromoExpires').value||null,max_uses:document.getElementById('editPromoMaxUses').value||null};const r=await fetch(`${API}/admin/promo-codes/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const d=await r.json();if(!r.ok)throw new Error(d.error||'No se pudo actualizar')}else if(kind==='zone'){const payload={name:document.getElementById('editZoneName').value.trim(),city:document.getElementById('editZoneCity').value.trim(),is_active:document.getElementById('editZoneStatus').value==='true'};const r=await fetch(`${API}/admin/catalogo/zonas/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const d=await r.json();if(!r.ok)throw new Error(d.error||'No se pudo actualizar')}else{const route=kind==='category'?'categorias':'subcategorias';const payload={name:document.getElementById('editCatalogName').value.trim(),is_active:document.getElementById('editCatalogStatus').value==='true'};const r=await fetch(`${API}/admin/catalogo/${route}/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const d=await r.json();if(!r.ok)throw new Error(d.error||'No se pudo actualizar')}}toast('✅ Cambios guardados');closeModal();await loadAll()}catch(e){toast('Error: '+e.message,'err')}}
+// listeners
+document.getElementById('catSearchInput').addEventListener('input',e=>{state.catalogSearch=(e.target.value||'').trim().toLowerCase();renderCatalogTable()});document.getElementById('zoneSearchInput').addEventListener('input',e=>{state.zoneSearch=(e.target.value||'').trim().toLowerCase();renderZoneTable()});document.getElementById('promoSearchInput').addEventListener('input',e=>{state.promoSearch=(e.target.value||'').trim().toLowerCase();renderPromoTable()});document.getElementById('modalSaveBtn').addEventListener('click',saveModal);document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});loadAll();
 </script>
 </body>
 </html>
