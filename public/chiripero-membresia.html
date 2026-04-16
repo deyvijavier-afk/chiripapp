@@ -148,7 +148,7 @@
           <div class="status-col">
             <label>Estado de tu membresía</label>
             <div class="status-wrap">
-              <span id="profile_status_badge" class="status-pill"><img class="status-icon" src="/demo/assets/profile_status/user_pending.png" alt="estado" /></span>
+              <span id="profile_status_badge" class="status-pill"><img class="status-icon" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%23dbeafe'/%3E%3Ccircle cx='32' cy='32' r='22' fill='white' stroke='%230284c7' stroke-width='4'/%3E%3Ctext x='32' y='40' text-anchor='middle' font-size='28' font-family='Arial, sans-serif' font-weight='700' fill='%230284c7'%3E!%3C/text%3E%3C/svg%3E" alt="estado" /></span>
               <div class="status-info">
                 <span id="profile_status_text" class="status-label">Pendiente de pago</span>
                 <span id="profile_status_until" class="status-until"></span>
@@ -275,6 +275,17 @@
   function fmtDate(d){ return d.toLocaleDateString('es-DO',{day:'2-digit',month:'2-digit',year:'numeric'}); }
   function addDays(d,days){ const x=new Date(d); x.setDate(x.getDate()+days); return x; }
 
+  function statusIconSvg(key){
+    const byKey = {
+      active: { bg:'#dcfce7', fg:'#16a34a', glyph:'✓' },
+      pending: { bg:'#dbeafe', fg:'#0284c7', glyph:'!' },
+      paused: { bg:'#fef3c7', fg:'#d97706', glyph:'‖' },
+      suspended: { bg:'#fee2e2', fg:'#dc2626', glyph:'×' },
+    };
+    const icon = byKey[key] || byKey.pending;
+    return `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="${icon.bg}"/><circle cx="32" cy="32" r="22" fill="white" stroke="${icon.fg}" stroke-width="4"/><text x="32" y="40" text-anchor="middle" font-size="28" font-family="Arial, sans-serif" font-weight="700" fill="${icon.fg}">${icon.glyph}</text></svg>`)}`;
+  }
+
   function renderStatus(){
     const text = document.getElementById('profile_status_text');
     const until = document.getElementById('profile_status_until');
@@ -283,13 +294,13 @@
     const alias = { pending_payment:'pending', in_review:'pending', review:'pending', grace:'paused', banned:'suspended', disabled:'suspended', inactive:'pending' };
     const key = alias[raw] || raw || 'pending';
     const meta = {
-      active:    { icon: '/demo/assets/profile_status/user_active.png',    label: 'Activo' },
-      pending:   { icon: '/demo/assets/profile_status/user_pending.png',   label: 'Pendiente de pago' },
-      paused:    { icon: '/demo/assets/profile_status/user_paused.png',    label: 'Pausado' },
-      suspended: { icon: '/demo/assets/profile_status/user_suspended.png', label: 'Suspendido' },
+      active:    { label: 'Activo' },
+      pending:   { label: 'Pendiente de pago' },
+      paused:    { label: 'Pausado' },
+      suspended: { label: 'Suspendido' },
     };
     const picked = meta[key] || meta.pending;
-    badge.innerHTML = `<img class="status-icon${key==='pending'?' pending-boost':''}" src="${picked.icon}" alt="estado" />`;
+    badge.innerHTML = `<img class="status-icon${key==='pending'?' pending-boost':''}" src="${statusIconSvg(key)}" alt="estado" />`;
     text.textContent = picked.label;
     if(key === 'active' && state.membershipExpiresAt){
       const end = new Date(state.membershipExpiresAt);
